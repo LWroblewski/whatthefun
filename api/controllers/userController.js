@@ -1,31 +1,69 @@
-const mock = require('./mock');
+
+const service = require("../services/UserService")();
+
+
+
+exports.authenticate = function(req, res){
+	if(req.headers.authorization){
+		const b64 = req.headers.authorization.substring(6);
+		const buf = Buffer.from(b64, 'base64');
+		
+		const creds = buf.toString("utf-8").split(":");
+		console.log(creds);
+		const login = service.getJwt({login:creds[0], pwd:creds[1]});
+		res.json(login);
+	}
+	res.status(401);
+}
 
 exports.getAllUsers = function(req, res){
-  res.json(mock.users);
-}
+	console.log("Get all users");
+	User.find({}, function(err, user){
+		if(err){
+			res.send(err);
+		}
+		res.json(user);
+	});
+};
 
 exports.createUser = function(req, res){
-  try{
-    mock.users.push(req.body);
-    res.status(201).end();
-  }catch(e){
-    res.status(500).send("An error occured");
-  }
-}
+	console.log("Create user");
+	const newUser = new User(req.body);
+	newUser.save(function(err, user){
+		if(err){
+			res.send(err);
+		}
+		res.json(user);
+	});
+};
 
 exports.getUser = function(req, res){
-  for(let i=0; i<mock.users.length; i++){
-    if(mock.users[i].login===req.params.userId){
-      res.json(mock.users[i]);
-      break;
-    }
-    res.send(req.params.userId +" not found");
-  }
-}
+	console.log("Get user");
+	//...findById({req.params.userId} ...
+	User.findOne({login : req.params.userId}, function(err, user){
+		if(err){
+			res.send(err);
+		}
+		res.json(user);
+	});
+};
 
-// exports.updateUser = function(req, res){
-//   res.json(mock.users);
-// }
-// exports.deleteUser = function(req, res){
-//   res.json(mock.users);
-// }
+exports.updateUser = function(req, res){
+	console.log("Update user");
+	User.findOneAndUpdate({login:req.params.userId}, req.body, {new:true}, function(err, user){
+		if(err){
+			res.send(err);
+		}
+		res.json(user);
+	});
+};
+
+exports.deleteUser = function(req, res){
+	console.log("Delete user");
+	User.remove({_id:req.params.userId}, function(err, user){
+		if(err){
+			res.send(err);
+		}
+		res.json({message:'User successfully deleted'});
+	});
+};

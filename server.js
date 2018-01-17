@@ -1,29 +1,40 @@
 const express = require("express");
-const mongoose = require('mongoose');
-
+const db = require("./api/dao/databaseAccess");
+const config = require("./config");
+const morgan = require("morgan");
 const app = express();
 
-const User = require("./api/models/userModel");
 const port = process.env.PORT || 3000;
 
-mongoose.Promise = global.Promise;
-mongoose.connect("mongodb://localhost/whatthefun");
+app.set('db', db);
+app.set('superSecret', config.secret);
+app.set("apiUrl", config.apiUrl);
+app.set('salt', config.salt);
 
 const bodyParser = require("body-parser");
 
-const routes = require('./api/routes/userRoutes');
+const publicRoutes = require('./api/routes/publicRoutes');
+const authRoutes = require('./api/routes/authenticatedRoutes');
+const adminRoutes = require('./api/routes/adminRoutes');
 
-app.use(bodyParser.urlencoded({extended:true}));
+app.use(bodyParser.urlencoded({
+  extended: true
+}));
 app.use(bodyParser.json());
+app.use(morgan('dev'));
 
 
-routes(app);
+publicRoutes(app);
+authRoutes(app);
+// adminRoutes(app);
 
-app.use(function(req, res){
-	res.status(404).send({url: req.originalUrl+ ' not found'});
+app.use(function(req, res) {
+  res.status(404).send({
+    url: req.originalUrl + ' not found'
+  });
 });
 
 
 app.listen(port);
 
-console.log("What the fun RESTful API server started on port : "+port);
+console.log("What the fun RESTful API server started on port : " + port);

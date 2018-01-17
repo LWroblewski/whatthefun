@@ -3,7 +3,7 @@ const Schema = mongoose.Schema;
 
 const EventSchema = new Schema({
   title: {
-    type: String, 
+    type: String,
     required: 'title of the event'
   },
   Created_date: {
@@ -12,7 +12,7 @@ const EventSchema = new Schema({
   },
   status: {
     type: [{
-      type: String, 
+      type: String,
       enum: ['pending', 'ongoing', 'completed']
     }],
     default: ['pending']

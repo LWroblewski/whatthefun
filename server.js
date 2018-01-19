@@ -26,7 +26,7 @@ app.use(morgan('dev'));
 
 publicRoutes(app);
 authRoutes(app);
-// adminRoutes(app);
+adminRoutes(app);
 
 app.use(function(req, res) {
   res.status(404).send({

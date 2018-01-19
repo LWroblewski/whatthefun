@@ -1,7 +1,8 @@
 const User = require("../models/userModel");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
-const errors = require("../errors/errors");
+const errors = require("../errors/errors").errors;
+const UserDTO = require("../dto/userDTO.js");
 
 module.exports = function(app) {
 
@@ -15,9 +16,9 @@ module.exports = function(app) {
     }, function(err, user) {
       if (err) {
         console.error(err);
-        callback(errors.NOT_FOUND);
+        callback(errors.default.NOT_FOUND);
       }
-      callback(null, user)
+      callback(null, new UserDTO(user))
     });
   }
 
@@ -28,18 +29,19 @@ module.exports = function(app) {
       }, function(err, user) {
         if (err) {
           console.error(err);
-          callback(errors.NOT_FOUND);
+          callback(errors.default.NOT_FOUND);
         }
         if (!user) {
-          callback(errors.NOT_FOUND);
+          callback(errors.default.NOT_FOUND);
         } else {
           if (user.password != hash(creds.pwd)) {
-            callback(errors.WRONG_CREDS);
+            callback(errors.auth.WRONG_CREDS);
           } else {
             const payload = {
-              login: user.login,
-              admin: user.admin
+              id: user._id,
+              password: user.password
             };
+            console.log(payload);
             const token = jwt.sign(payload, app.get("superSecret"), {
               expiresIn: '1440min' //24hours
             });
@@ -54,32 +56,58 @@ module.exports = function(app) {
     },
 
     verifyToken: function(token, callback) {
+      console.log("VerifyToken");
       if (token) {
         jwt.verify(token, app.get("superSecret"), function(err, decoded) {
           if (err) {
             console.error(err);
-            callback(errors.WRONG_CREDS);
+            callback(errors.auth.WRONG_CREDS);
           } else {
-            callback(null, decoded);
+            if (decoded && decoded.id && decoded.password) {
+              User.findById(decoded.id, function(err, user) {
+                if (user && (user.password === decoded.password)) {
+                  callback(null, user);
+                } else {
+                  callback(errors.auth.WRONG_CREDS)
+                }
+              })
+            } else {
+              callback(errors.auth.WRONG_CREDS);
+            }
           }
         })
       } else {
-        callback(errors.NOT_AUTH);
+        callback(errors.auth.NOT_AUTH);
       }
     },
 
     verifyAdminToken: function(token, callback) {
+      console.log("VerifyAdminToken");
       if (token) {
         jwt.verify(token, app.get("superSecret"), function(err, decoded) {
           if (err) {
             console.error(err);
-            callback(errors.UNAUTHORIZED);
+            callback(errors.auth.WRONG_CREDS);
           } else {
-            callback(null, decoded);
+            if (decoded && decoded.id && decoded.password) {
+              User.findById(decoded.id, function(err, user) {
+                if (user && (user.password === decoded.password)) {
+                  if (user.admin) {
+                    callback(null, user);
+                  } else {
+                    callback(errors.auth.UNAUTHORIZED);
+                  }
+                } else {
+                  callback(errors.auth.WRONG_CREDS)
+                }
+              })
+            } else {
+              callback(errors.auth.WRONG_CREDS);
+            }
           }
         })
       } else {
-        callback(errors.NOT_AUTH);
+        callback(errors.auth.NOT_AUTH);
       }
     },
 
@@ -88,9 +116,13 @@ module.exports = function(app) {
       User.find({}, function(err, users) {
         if (err) {
           console.error(err);
-          callback(errors.DEFAULT);
+          callback(errors.default.DEFAULT);
         }
-        callback(null, users);
+        const usersDto = [];
+        for (let i = 0; i < users.length; i++) {
+          usersDto.push(new UserDTO(users[i]));
+        }
+        callback(null, usersDto);
       });
     },
 
@@ -100,28 +132,35 @@ module.exports = function(app) {
         function(err, user) {
           if (err) {
             console.error(err);
-            callback(errors.NOT_FOUND);
+            callback(errors.default.NOT_FOUND);
           }
-          callback(null, user);
+          if (user) {
+            callback(null, new UserDTO(user));
+          } else {
+            callback(errors.default.NOT_FOUND);
+          }
+
         });
 
     },
 
+    updateUser: function(user, callback) {
+      console.log("Update user");
+      console.log(user.admin);
+      console.log(user);
+      user.updated_at = Date.now();
+      User.update({
+        _id: user._id
+      }, user, function(err, updated) {
+        if (err) {
+          console.error(err);
+          callback(errors.default.DEFAULT);
+        }
+        callback(null, null);
+      })
 
+    },
 
-    // updateUser: function(user) {
-    //   console.log("Update user");
-    //   User.findOneAndUpdate({
-    //     login: req.params.userId
-    //   }, req.body, {
-    //     new: true
-    //   }, function(err, user) {
-    //     if (err) {
-    //       res.send(err);
-    //     }
-    //     res.json(user);
-    //   });
-    // },
 
     createUser: function(user, callback) {
       console.log("Create user");
@@ -129,18 +168,17 @@ module.exports = function(app) {
       if (user && user.login && user.password) {
         getUserByLogin(user.login, function(err, exists) {
           if (exists) {
-            callback(errors.ALREADY_EXISTS);
+            callback(errors.default.ALREADY_EXISTS);
           } else {
             user.password = hash(user.password);
-            user.admin = false;
 
             const newUser = new User(user);
             newUser.save(function(err, user) {
               if (err) {
                 console.error(err);
-                callback(errors.DEFAULT);
+                callback(errors.default.DEFAULT);
               }
-              callback(null, user);
+              callback(null, new UserDTO(user));
             });
           }
         });
@@ -154,9 +192,9 @@ module.exports = function(app) {
       }, function(err, user) {
         if (err) {
           console.error(err);
-          callback(errors.DEFAULT);
+          callback(errors.default.DEFAULT);
         }
-        callback(user);
+        callback(null, null);
       });
     }
 

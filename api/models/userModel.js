@@ -2,9 +2,7 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const UserSchema = new Schema({
-  id: {
-    type: Schema.ObjectId
-  },
+
   login: {
     type: String,
     required: 'mail address'
@@ -13,7 +11,20 @@ const UserSchema = new Schema({
     type: String,
     required: 'hashed password'
   },
-  admin: Boolean
+  admin: {
+    type: Boolean,
+    default: false
+  },
+  firstname: String,
+  lastname: String,
+  created_at: {
+    type: Date,
+    default: Date.now
+  },
+  updated_at: Date,
+  birthdate: Date,
+  team: String
+
 
 });
 

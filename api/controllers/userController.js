@@ -1,4 +1,4 @@
-const errors = require("../errors/errors");
+const errors = require("../errors/errors").errors;
 module.exports = function(app) {
   const service = require("../services/userService")(app);
 
@@ -20,10 +20,9 @@ module.exports = function(app) {
 
         });
       } else {
-        let err = errors.BAD_PARAMS;
+        let err = errors.default.BAD_PARAMS;
         res.status(err.status).send(err.desc);
       }
-
     },
 
     verifyToken: function(req, res, next) {
@@ -34,23 +33,24 @@ module.exports = function(app) {
             res.status(err.status).send(err.desc);
           } else {
             req.decodedUser = user;
+            console.log(req.decodedUser);
             next();
           }
         })
       } else {
-        let err = errors.NOT_AUTH;
+        let err = errors.auth.NOT_AUTH;
         res.status(err.status).send(err.desc);
       }
-
     },
 
     verifyAdminToken: function(req, res, next) {
       const token = req.headers.authorization.substring("Bearer ".length);
-      service.verifyToken(token, function(err, user) {
+      service.verifyAdminToken(token, function(err, user) {
         if (err) {
           res.status(err.status).send(err.desc);
         } else {
           req.decodedAdmin = user;
+          console.log(req.decodedUser);
           next();
         }
       })
@@ -67,7 +67,6 @@ module.exports = function(app) {
     },
 
     getUser: function(req, res) {
-      console.log(req.params.userId);
       service.getUser(req.params.userId, function(err, user) {
         if (err) {
           res.status(err.status).send(err.desc);
@@ -82,32 +81,38 @@ module.exports = function(app) {
         if (err) {
           res.status(err.status).send(err.desc);
         } else {
-          res.json(user);
+          res.status(201).json(user);
         }
       });
+    },
+
+    deleteUser: function(req, res) {
+      service.deleteUser(req.params.userId, function(err, user) {
+        if (err) {
+          res.status(err.status).send(err.desc);
+        } else {
+          res.status(204).send();
+        }
+      })
+    },
+
+    updateUser: function(req, res) {
+      if ((req.decodedUser && (req.decodedUser._id == req.params.userId)) || req.decodedAdmin) {
+        req.body._id = req.params.userId;
+        service.updateUser(req.body, function(err, user) {
+          if (err) {
+            res.status(err.status).send(err.desc);
+          } else {
+            res.status(204).json();
+          }
+        });
+      } else {
+        console.log(errors.default.FORBIDDEN);
+        let err = errors.default.FORBIDDEN;
+        res.status(err.status).send(err.desc);
+      }
     }
 
   }
 
 }
-
-// exports.getUser = function(req, res) {
-//   try {
-//     const user = service.getUserByLogin(req.params.userId);
-//     if (user) {
-//       res.json(user);
-//     } else {
-//       res.status(404).send("User not found");
-//     }
-//   } catch (err) {
-//     res.status(500).send(err);
-//   }
-// };
-
-// exports.updateUser = function(req, res) {
-
-// };
-
-// exports.deleteUser = function(req, res) {
-
-// };

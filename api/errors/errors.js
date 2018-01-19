@@ -27,6 +27,13 @@ exports.errors = {
         message: "The resource you're trying to create already exists."
       },
       status: 409
+    },
+    FORBIDDEN: {
+      desc: {
+        code: "FORBIDDEN",
+        message: "The action you're trying to achieve is forbidden."
+      },
+      status: 403
     }
   },
   auth: {

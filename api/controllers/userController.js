@@ -33,7 +33,12 @@ module.exports = function(app) {
             res.status(err.status).send(err.desc);
           } else {
             req.decodedUser = user;
+            if (user.admin) {
+              req.decodedAdmin = user;
+            }
+            console.log("AUTH ---");
             console.log(req.decodedUser);
+            console.log("--- /AUTH");
             next();
           }
         })
@@ -50,14 +55,15 @@ module.exports = function(app) {
           res.status(err.status).send(err.desc);
         } else {
           req.decodedAdmin = user;
+          console.log("ADMIN ---");
           console.log(req.decodedUser);
+          console.log("--- /ADMIN");
           next();
         }
       })
     },
 
     getUsers: function(req, res) {
-      console.log(req.decodedUser);
       service.getUsers(function(err, users) {
         if (err) {
           res.status(err.status).send(err.desc);
@@ -99,7 +105,7 @@ module.exports = function(app) {
     updateUser: function(req, res) {
       if ((req.decodedUser && (req.decodedUser._id == req.params.userId)) || req.decodedAdmin) {
         req.body._id = req.params.userId;
-        service.updateUser(req.body, function(err, user) {
+        service.updateUser(req.body, req.decodedUser.admin, function(err, user) {
           if (err) {
             res.status(err.status).send(err.desc);
           } else {

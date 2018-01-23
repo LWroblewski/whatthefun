@@ -58,5 +58,14 @@ exports.errors = {
       },
       status: 405
     }
+  },
+  team: {
+    ALREADY_HAS_TEAM: {
+      desc: {
+        code: "UNAUTHORIZED",
+        message: "This user already has a team."
+      },
+      status: 403
+    }
   }
 }

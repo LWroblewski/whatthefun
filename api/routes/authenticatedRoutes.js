@@ -13,8 +13,8 @@ module.exports = function(app) {
   // AUTHENTICATED ROUTES
 
 
-  // app.route(url + '/users')
-  //   .get(user.getUsers)
+  app.route(url + '/users')
+    .get(user.getUsers)
 
   app.route(url + '/users/:userId')
     .get(user.getUser)
@@ -22,6 +22,11 @@ module.exports = function(app) {
 
   app.route(url + '/teams')
     .get(team.getTeams);
+
+  app.route(url + '/teams/:teamId')
+    .get(team.getTeam);
+  app.route(url + '/teams/:teamId/members')
+    .post(team.addUserInTeam);
 
   app.route(url + '/events')
     .get(event.getEvents)

@@ -14,11 +14,17 @@ module.exports = function(app) {
     User.findOne({
       login: login
     }, function(err, user) {
+      console.log(user);
       if (err) {
         console.error(err);
         callback(errors.default.NOT_FOUND);
       }
-      callback(null, new UserDTO(user))
+      if (!user) {
+        callback(errors.default.NOT_FOUND);
+      } else {
+        callback(null, new UserDTO(user));
+      }
+
     });
   }
 
@@ -144,20 +150,41 @@ module.exports = function(app) {
 
     },
 
-    updateUser: function(user, callback) {
+    updateUser: function(user, isAdmin, callback) {
       console.log("Update user");
-      console.log(user.admin);
-      console.log(user);
-      user.updated_at = Date.now();
-      User.update({
-        _id: user._id
-      }, user, function(err, updated) {
+
+      User.findById(user._id, function(err, existing) {
         if (err) {
           console.error(err);
           callback(errors.default.DEFAULT);
+        } else if (!existing) {
+          callback(errors.default.NOT_FOUND);
+        } else {
+
+          // If user exists & there is no db error
+          user.updated_at = Date.now();
+          if (user.password) {
+            user.password = hash(user.password);
+          }
+          if (!isAdmin && !existing.admin && user.admin) {
+            callback(errors.default.FORBIDDEN);
+          } else {
+            User.update({
+              _id: user._id
+            }, user, function(err, updated) {
+              if (err) {
+                console.error(err);
+                callback(errors.default.DEFAULT);
+              }
+              callback(null, null);
+            });
+          }
         }
-        callback(null, null);
-      })
+
+
+      });
+
+
 
     },
 
@@ -174,6 +201,7 @@ module.exports = function(app) {
 
             const newUser = new User(user);
             newUser.save(function(err, user) {
+              console.log(user);
               if (err) {
                 console.error(err);
                 callback(errors.default.DEFAULT);

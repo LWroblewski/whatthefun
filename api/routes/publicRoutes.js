@@ -9,6 +9,7 @@ module.exports = function(app) {
   app.route('/login')
     .get(user.authenticate);
 
-  app.route(url + "/users")
-    .post(user.createUser);
+  // app.route(url + "/users")
+  //   .post(user.createUser);
+
 }

@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const errors = require("../errors/errors").errors;
 const UserDTO = require("../dto/userDTO.js");
+const Team = require("../models/teamModel");
 
 module.exports = function(app) {
 
@@ -10,220 +11,199 @@ module.exports = function(app) {
     return crypto.createHmac('sha256', app.get("salt")).update(clear).digest('hex');
   }
 
-  const getUserByLogin = function(login, callback) {
-    User.findOne({
-      login: login
-    }, function(err, user) {
-      console.log(user);
-      if (err) {
-        console.error(err);
-        callback(errors.default.NOT_FOUND);
-      }
-      if (!user) {
-        callback(errors.default.NOT_FOUND);
-      } else {
-        callback(null, new UserDTO(user));
-      }
-
-    });
+  const getUserByLogin = async function(login) {
+    try {
+      const user = await User.findOne({
+        login: login
+      });
+      return new UserDTO(user);
+    } catch (e) {
+      throw errors.default.NOT_FOUND;
+    }
   }
 
   return {
-    getJwt: function(creds, callback) {
-      User.findOne({
-        login: creds.login
-      }, function(err, user) {
-        if (err) {
-          console.error(err);
-          callback(errors.default.NOT_FOUND);
+    getJwt: async function(creds) {
+      let isValid = true;
+      try {
+        const user = await User.findOne({
+          login: creds.login
+        });
+        if (user.password != hash(creds.pwd)) {
+          isValid = false;
+          throw errors.default.WRONG_CREDS;
         }
-        if (!user) {
-          callback(errors.default.NOT_FOUND);
-        } else {
-          if (user.password != hash(creds.pwd)) {
-            callback(errors.auth.WRONG_CREDS);
-          } else {
-            const payload = {
-              id: user._id,
-              password: user.password
-            };
-            console.log(payload);
-            const token = jwt.sign(payload, app.get("superSecret"), {
-              expiresIn: '1440min' //24hours
-            });
-            callback(null, {
-              message: "Enjoy the token",
-              token: token
-            });
-          }
+        const payload = {
+          id: user._id,
+          password: user.password
+        }
+        console.log(payload);
+        const token = jwt.sign(payload, app.get('superSecret'), {
+          expiresIn: '1440min'
+        });
+        return {
+          message: "Enjoy the token",
+          login: user.login,
+          token_type: "Bearer",
+          expires_in: 86400,
+          token: token
         }
 
-      });
+      } catch (e) {
+        if (!isValid) {
+          throw e;
+        }
+        throw errors.default.NOT_FOUND;
+      }
     },
 
-    verifyToken: function(token, callback) {
+    verifyToken: async function(token) {
       console.log("VerifyToken");
       if (token) {
-        jwt.verify(token, app.get("superSecret"), function(err, decoded) {
-          if (err) {
-            console.error(err);
-            callback(errors.auth.WRONG_CREDS);
-          } else {
-            if (decoded && decoded.id && decoded.password) {
-              User.findById(decoded.id, function(err, user) {
-                if (user && (user.password === decoded.password)) {
-                  callback(null, user);
-                } else {
-                  callback(errors.auth.WRONG_CREDS)
-                }
-              })
+        try {
+          const decoded = jwt.verify(token, app.get("superSecret"));
+          if (decoded && decoded.id && decoded.password) {
+            const user = await User.findById(decoded.id);
+            if (user && (user.password === decoded.password)) {
+              return new UserDTO(user);
             } else {
-              callback(errors.auth.WRONG_CREDS);
+              throw errors.auth.WRONG_CREDS;
             }
+          } else {
+            throw errors.auth.WRONG_CREDS;
           }
-        })
+
+        } catch (e) {
+          throw errors.auth.WRONG_CREDS;
+        }
       } else {
-        callback(errors.auth.NOT_AUTH);
+        throw errors.auth.NOT_AUTH;
       }
+
+
     },
 
-    verifyAdminToken: function(token, callback) {
+    verifyAdminToken: async function(token) {
       console.log("VerifyAdminToken");
       if (token) {
-        jwt.verify(token, app.get("superSecret"), function(err, decoded) {
-          if (err) {
-            console.error(err);
-            callback(errors.auth.WRONG_CREDS);
-          } else {
-            if (decoded && decoded.id && decoded.password) {
-              User.findById(decoded.id, function(err, user) {
-                if (user && (user.password === decoded.password)) {
-                  if (user.admin) {
-                    callback(null, user);
-                  } else {
-                    callback(errors.auth.UNAUTHORIZED);
-                  }
+        let isAdmin = true;
+        try {
+          const decoded = await jwt.verify(token, app.get("superSecret"));
+          if (decoded && decoded.id && decoded.password) {
+            try {
+              const user = await User.findById(decoded.id);
+              if (user && (user.password === decoded.password)) {
+                if (user.admin) {
+                  return new UserDTO(user);
                 } else {
-                  callback(errors.auth.WRONG_CREDS)
+                  isAdmin = false;
+                  throw errors.auth.UNAUTHORIZED;
                 }
-              })
-            } else {
-              callback(errors.auth.WRONG_CREDS);
+              }
+            } catch (er) {
+              throw errors.auth.WRONG_CREDS;
             }
+
+          } else {
+            throw errors.auth.WRONG_CREDS;
           }
-        })
+        } catch (e) {
+          if (!isAdmin) {
+            throw e;
+          }
+          throw errors.auth.WRONG_CREDS;
+        }
       } else {
-        callback(errors.auth.NOT_AUTH);
+        throw errors.auth.NOT_AUTH;
       }
     },
 
-    getUsers: function(callback) {
-      console.log("Get all users");
-      User.find({}, function(err, users) {
-        if (err) {
-          console.error(err);
-          callback(errors.default.DEFAULT);
-        }
+    getUsers: async function() {
+      try {
+        const users = await User.find({});
         const usersDto = [];
         for (let i = 0; i < users.length; i++) {
           usersDto.push(new UserDTO(users[i]));
         }
-        callback(null, usersDto);
-      });
-    },
-
-    getUser: function(id, callback) {
-      User.findById(
-        id,
-        function(err, user) {
-          if (err) {
-            console.error(err);
-            callback(errors.default.NOT_FOUND);
-          }
-          if (user) {
-            callback(null, new UserDTO(user));
-          } else {
-            callback(errors.default.NOT_FOUND);
-          }
-
-        });
-
-    },
-
-    updateUser: function(user, isAdmin, callback) {
-      console.log("Update user");
-
-      User.findById(user._id, function(err, existing) {
-        if (err) {
-          console.error(err);
-          callback(errors.default.DEFAULT);
-        } else if (!existing) {
-          callback(errors.default.NOT_FOUND);
-        } else {
-
-          // If user exists & there is no db error
-          user.updated_at = Date.now();
-          if (user.password) {
-            user.password = hash(user.password);
-          }
-          if (!isAdmin && !existing.admin && user.admin) {
-            callback(errors.default.FORBIDDEN);
-          } else {
-            User.update({
-              _id: user._id
-            }, user, function(err, updated) {
-              if (err) {
-                console.error(err);
-                callback(errors.default.DEFAULT);
-              }
-              callback(null, null);
-            });
-          }
-        }
-
-
-      });
-
-
-
-    },
-
-
-    createUser: function(user, callback) {
-      console.log("Create user");
-
-      if (user && user.login && user.password) {
-        getUserByLogin(user.login, function(err, exists) {
-          if (exists) {
-            callback(errors.default.ALREADY_EXISTS);
-          } else {
-            user.password = hash(user.password);
-
-            const newUser = new User(user);
-            newUser.save(function(err, user) {
-              console.log(user);
-              if (err) {
-                console.error(err);
-                callback(errors.default.DEFAULT);
-              }
-              callback(null, new UserDTO(user));
-            });
-          }
-        });
+        return usersDto;
+      } catch (e) {
+        throw errors.default.DEFAULT;
       }
     },
 
-    deleteUser: function(userId, callback) {
-      console.log("Delete user");
-      User.remove({
-        _id: userId
-      }, function(err, user) {
-        if (err) {
-          console.error(err);
-          callback(errors.default.DEFAULT);
+    getUser: async function(id) {
+      try {
+        const user = await User.findById(id);
+        return new UserDTO(user);
+      } catch (e) {
+        throw errors.default.NOT_FOUND;
+      }
+    },
+
+    updateUser: async function(user, isAdmin) {
+      console.log("Update user");
+      let forbidden = false;
+      let defaultErr = false;
+      try {
+        const existing = await User.findById(user._id);
+        user.updated_at = Date.now();
+        if (user.password) {
+          user.password = hash(user.password);
         }
-        callback(null, null);
+        if (!isAdmin && !existing.admin && user.admin) {
+          forbidden = true;
+          throw errors.default.FORBIDDEN;
+        }
+        try {
+          const updated = await User.update({
+            _id: user._id
+          }, user);
+          return new UserDTO(updated);
+        } catch (err) {
+          defaultErr = true;
+          console.error(err);
+          throw errors.default.DEFAULT;
+        }
+
+      } catch (e) {
+        if (forbidden) {
+          throw e;
+        }
+        if (defaultErr) {
+          throw e;
+        }
+        throw errors.default.NOT_FOUND;
+      }
+
+    },
+
+
+    createUser: async function(user) {
+      if (user && user.login && user.password) {
+        let exists = false;
+        try {
+          const existingUser = await getUserByLogin(user.login);
+          exists = true;
+          throw errors.default.ALREADY_EXISTS;
+        } catch (e) {
+          if (exists) {
+            throw e;
+          } else {
+            user.password = hash(user.password);
+            const newUser = new User(user);
+            const result = await newUser.save();
+            return new UserDTO(result);
+          }
+        }
+      }
+    },
+
+    deleteUser: async function(userId) {
+      console.log("Delete user");
+      const result = await User.remove({
+        _id: userId
       });
+      return;
     }
 
 

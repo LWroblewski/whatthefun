@@ -7,6 +7,7 @@ module.exports = class UserDTO {
     this.lastname = user.lastname;
     this.birthdate = user.birthdate;
     this.team = user.team;
+    this.admin = user.admin;
   }
   getId() {
     return this.id;
@@ -25,6 +26,9 @@ module.exports = class UserDTO {
   }
   getTeam() {
     return this.team;
+  }
+  isAdmin() {
+    return this.admin;
   }
 
 }

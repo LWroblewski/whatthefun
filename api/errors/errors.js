@@ -62,8 +62,15 @@ exports.errors = {
   team: {
     ALREADY_HAS_TEAM: {
       desc: {
-        code: "UNAUTHORIZED",
+        code: "ALREADY_HAS_TEAM",
         message: "This user already has a team."
+      },
+      status: 403
+    },
+    HAS_NO_TEAM: {
+      desc: {
+        code: "HAS_NO_TEAM",
+        message: "This user has no team."
       },
       status: 403
     }

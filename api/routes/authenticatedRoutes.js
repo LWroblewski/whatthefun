@@ -26,7 +26,8 @@ module.exports = function(app) {
   app.route(url + '/teams/:teamId')
     .get(team.getTeam);
   app.route(url + '/teams/:teamId/members')
-    .post(team.addUserInTeam);
+    .post(team.addUserInTeam)
+    .delete(team.removeUserFromTeam);
 
   app.route(url + '/events')
     .get(event.getEvents)

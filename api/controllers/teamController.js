@@ -3,47 +3,52 @@ module.exports = function(app) {
   const service = require("../services/teamService")(app);
 
   return {
-    getTeams: function(req, res) {
-      service.getTeams(function(err, teams) {
-        if (err) {
-          res.status(err.status).send(err.desc);
-        }
+    getTeams: async function(req, res) {
+      try {
+        const teams = await service.getTeams();
         res.json(teams);
-      });
+      } catch (e) {
+        res.status(e.status).send(e.desc);
+      }
     },
-    createTeam: function(req, res) {
-      service.createTeam(req.body, function(err, team) {
-        if (err) {
-          res.status(err.status).send(err.desc);
-        } else {
-          res.status(201).json(team);
-        }
-      });
+    createTeam: async function(req, res) {
+      try {
+        const newTeam = await service.createTeam(req.body);
+        res.json(newTeam);
+      } catch (e) {
+        res.status(e.status).send(e.desc);
+      }
     },
-    getTeam: function(req, res) {
-
-      service.getTeam(req.params.teamId, function(err, team) {
-        if (err) {
-          res.status(err.status).send(err.desc);
-        } else {
-          res.json(team);
-        }
-      });
-
+    getTeam: async function(req, res) {
+      try {
+        const team = await service.getTeam(req.params.teamId);
+        res.json(team);
+      } catch (e) {
+        res.status(e.status).send(e.desc);
+      }
     },
-    addUserInTeam: function(req, res) {
+    addUserInTeam: async function(req, res) {
       if ((req.decodedUser && req.body && (req.decodedUser._id == req.body.userId)) || req.decodedAdmin) {
-
-        service.addUserInTeam(req.body.userId, req.params.teamId, function(err, team) {
-          if (err) {
-            res.status(err.status).send(err.desc);
-          } else {
-            res.json(team);
-          }
-        });
-
+        try {
+          const team = await service.addUserInTeam(req.body.userId, req.params.teamId);
+          res.status(204).send();
+        } catch (e) {
+          res.status(e.status).send(e.desc);
+        }
       } else {
-        console.log(errors.default.FORBIDDEN);
+        let err = errors.default.FORBIDDEN;
+        res.status(err.status).send(err.desc);
+      }
+    },
+    removeUserFromTeam: async function(req, res) {
+      if ((req.decodedUser && req.body && (req.decodedUser._id == req.body.userId)) || req.decodedAdmin) {
+        try {
+          const team = await service.removeUserFromTeam(req.body.userId, req.params.teamId);
+          res.status(204).send();
+        } catch (e) {
+          res.status(e.status).send(e.desc);
+        }
+      } else {
         let err = errors.default.FORBIDDEN;
         res.status(err.status).send(err.desc);
       }

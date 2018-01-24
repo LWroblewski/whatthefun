@@ -52,6 +52,15 @@ module.exports = function(app) {
         let err = errors.default.FORBIDDEN;
         res.status(err.status).send(err.desc);
       }
+    },
+
+    addPoints: async function(req, res) {
+      try {
+        const team = await service.addPointsToTeam(req.params.teamId, 3);
+        res.json(team);
+      } catch (e) {
+        res.status(e.status).send(e.desc);
+      }
     }
 
   }

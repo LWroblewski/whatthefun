@@ -38,4 +38,5 @@ module.exports = function(app) {
 
   app.route(url + '/events/:eventId/comments')
     .post(event.commentEvent);
+
 }

@@ -42,7 +42,6 @@ module.exports = function(app) {
           expiresIn: '1440min'
         });
         return {
-          message: "Enjoy the token",
           login: user.login,
           token_type: "Bearer",
           expires_in: 86400,
@@ -204,7 +203,21 @@ module.exports = function(app) {
         _id: userId
       });
       return;
+    },
+
+    getUserTeam: async function(userId) {
+      try {
+        const user = await this.getUser(userId);
+        if (!user.team) {
+          throw errors.team.HAS_NO_TEAM;
+        }
+        const team = await Team.findById(user.team);
+        return new TeamDTO(team);
+      } catch (e) {
+        throw e;
+      }
     }
+
 
 
   }

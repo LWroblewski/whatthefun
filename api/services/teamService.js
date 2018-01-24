@@ -112,6 +112,21 @@ module.exports = function(app) {
       } catch (e) {
         throw errors.default.NOT_FOUND;
       }
+    },
+
+    addPointsToTeam: async function(id, points) {
+      try {
+        const team = await Team.findById(id);
+        team.score += points;
+        const result = await Team.update({
+          _id: id
+        }, {
+          score: team.score
+        });
+        return new TeamDTO(team);
+      } catch (e) {
+        throw errors.default.NOT_FOUND;
+      }
     }
 
 

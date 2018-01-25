@@ -51,7 +51,7 @@ module.exports = function(app) {
           const newEvent = new Event(event);
           const result = await newEvent.save();
           if (user.team) {
-            teamService.addPointsToTeam(user.team, 3);
+            teamService.addPointsToTeam(user.team, app.get("eventReward"));
           }
           return new EventDTO(result);
         } catch (e) {
@@ -73,6 +73,9 @@ module.exports = function(app) {
           const com = await this.getComment(comment.target);
           const newComment = new Comment(comment);
           const result = await newComment.save();
+          if (user.team) {
+            teamService.addPointsToTeam(user.team, app.get("commentReward"));
+          }
           let comments = com.comments;
           if (!comments.includes(newComment._id)) {
             comments.push(newComment._id);
@@ -98,9 +101,10 @@ module.exports = function(app) {
           const user = await userService.getUser(comment.author);
           const event = await this.getEvent(comment.target);
           const newComment = new Comment(comment);
-          console.log(newComment);
           const result = await newComment.save();
-          console.log(result);
+          if (user.team) {
+            teamService.addPointsToTeam(user.team, app.get("commentReward"));
+          }
           let comments = event.comments;
           if (!comments.includes(newComment._id)) {
             comments.push(newComment._id);

@@ -10,6 +10,9 @@ app.set('db', db);
 app.set('superSecret', config.secret);
 app.set("apiUrl", config.apiUrl);
 app.set('salt', config.salt);
+app.set('eventReward', config.eventReward);
+app.set('likeReward', config.likeReward);
+app.set('commentReward', config.commentReward);
 
 const bodyParser = require("body-parser");
 

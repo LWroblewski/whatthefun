@@ -55,8 +55,16 @@ module.exports = function(app) {
         res.status(e.status).send(e.desc);
       }
     },
+    getComment: async function(req, res) {
+      try {
+        const comment = await service.getComment(req.params.commentId);
+        res.json(comment);
+      } catch (e) {
+        res.status(e.status).send(e.desc);
+      }
+    },
     getCommentComments: async function(req, res) {
-      console.log("comment comment");
+      console.log("comment comments");
       console.log(req.body);
       console.log(req.params);
       res.send({});

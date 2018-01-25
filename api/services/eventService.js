@@ -62,15 +62,6 @@ module.exports = function(app) {
       }
     },
 
-    getComment: async function(commentId) {
-      try {
-        const comment = await Comment.findById(commentId);
-        // console.log(comment);
-        return new CommentDTO(comment);
-      } catch (e) {
-        throw errors.default.NOT_FOUND;
-      }
-    },
 
 
     // COMMENTS
@@ -126,6 +117,15 @@ module.exports = function(app) {
         }
       } else {
         throw errors.default.BAD_PARAMS;
+      }
+    },
+
+    getComment: async function(commentId) {
+      try {
+        const comment = await Comment.findById(commentId);
+        return new CommentDTO(comment);
+      } catch (e) {
+        throw errors.default.NOT_FOUND;
       }
     }
   }

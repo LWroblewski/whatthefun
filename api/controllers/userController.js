@@ -73,6 +73,26 @@ module.exports = function(app) {
       }
     },
 
+    /**
+     * @api {post} /api/users Create a new User
+     * @apiName CreateUser
+     * @apiGroup User
+     *
+     * @apiParam {String} login User login (mail address)
+     * @apiParam {String} password User password (will be hashed)
+     * @apiParam {String} [firstname] User firstname
+     * @apiParam {String} [lastname] User lastname
+     * @apiParam {Date} [birthdate] User date of birth
+     * @apiParam {Boolean} [admin=false] Is the User an admin or not
+     *
+     * @apiSuccess {String} id User id
+     * @apiSuccess {String} login User login
+     * @apiSuccess {String} [firstname] User firstname
+     * @apiSuccess {String} [lastname] User lastname
+     * @apiSuccess {Date} [birthdate] User date of birth
+     * @apiSuccess {String} [team] User team ID
+     * @apiSuccess {Boolean} [admin] Is the User an admin or not
+     */
     createUser: async function(req, res) {
       try {
         const newUser = await service.createUser(req.body);
@@ -91,6 +111,21 @@ module.exports = function(app) {
       }
     },
 
+    /**
+     * @api {put} /api/users/:id Update an User
+     * @apiName UpdateUser
+     * @apiGroup User
+     *
+     * @apiParam {String} id User id
+     * @apiParam {String} [login] User login (mail address)
+     * @apiParam {String} [password] User password (will be hashed)
+     * @apiParam {String} [firstname] User firstname
+     * @apiParam {String} [lastname] User lastname
+     * @apiParam {Date} [birthdate] User date of birth
+     * @apiParam {Boolean} [admin=false] Is the User an admin or not
+     *
+     * @apiSuccess (204)
+     */
     updateUser: async function(req, res) {
       if ((req.decodedUser && (req.decodedUser._id == req.params.userId)) || req.decodedAdmin) {
         req.body._id = req.params.userId;

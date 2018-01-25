@@ -14,22 +14,28 @@ const EventSchema = new Schema({
     type: Date,
     default: Date.now
   },
-  due_date: {
-    type: Date,
-    required: 'Due date'
-  },
+  due_date: Date,
   status: {
-    type: [{
-      type: String,
-      enum: ['pending', 'ongoing', 'completed']
-    }],
-    default: ['pending']
+    type: String,
+    enum: ['pending', 'ongoing', 'completed'],
+    default: 'pending'
   },
   short_desc: String,
   long_desc: String,
   likes: Array,
   comments: Array,
-  event_type: String
+  event_type: {
+
+    type: String,
+    enum: ['cap', 'story', 'thanks', 'code', 'challenge']
+
+  },
+  target_type: {
+    type: String,
+    enum: ['all', 'team', 'user'],
+    default: 'all'
+  },
+  target: Array
 
 });
 

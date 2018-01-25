@@ -12,6 +12,8 @@ module.exports = class EventDTO {
     this.comments = event.comments;
     this.createdDate = event.created_date;
     this.dueDate = event.due_date;
+    this.target = event.target;
+    this.targetType = event.target_type;
 
   }
   getId() {
@@ -40,6 +42,12 @@ module.exports = class EventDTO {
   }
   getDueDate() {
     return this.dueDate;
+  }
+  getTargetType() {
+    return this.targetType;
+  }
+  getTarget() {
+    return this.target;
   }
 
 }

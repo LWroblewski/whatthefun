@@ -194,6 +194,8 @@ module.exports = function(app) {
             return new UserDTO(result);
           }
         }
+      } else {
+        throw errors.default.BAD_PARAMS;
       }
     },
 

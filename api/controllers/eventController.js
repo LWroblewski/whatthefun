@@ -1,15 +1,24 @@
 module.exports = function(app) {
   const errors = require("../errors/errors").errors;
-  // const service = require("../services/teamService")(app);
+  const service = require("../services/eventService")(app);
 
   return {
-    getEvents: function(req, res) {
-      console.log("get events");
-      res.send({});
+    getEvents: async function(req, res) {
+      try {
+        const events = await service.getEvents();
+        res.json(events);
+      } catch (e) {
+        res.status(e.status).send(e.desc);
+      }
     },
-    createEvent: function(req, res) {
-      console.log("Create event");
-      res.send({});
+    createEvent: async function(req, res) {
+      try {
+        req.body.owner = req.decodedUser.id;
+        const newEvent = await service.createEvent(req.body);
+        res.json(newEvent);
+      } catch (e) {
+        res.status(e.status).send(e.desc);
+      }
     },
     getEvent: function(req, res) {
       console.log("getEvent");

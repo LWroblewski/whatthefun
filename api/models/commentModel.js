@@ -14,7 +14,12 @@ const CommentSchema = new Schema({
     type: String,
     required: 'Content of the comment'
   },
-  likes: Array
+  likes: Array,
+  target: {
+    type: String,
+    required: 'id of the comment\'s target'
+  },
+  comments: Array
 
 });
 

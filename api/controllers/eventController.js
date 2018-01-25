@@ -11,6 +11,7 @@ module.exports = function(app) {
         res.status(e.status).send(e.desc);
       }
     },
+
     createEvent: async function(req, res) {
       try {
         req.body.owner = req.decodedUser.id;
@@ -20,18 +21,53 @@ module.exports = function(app) {
         res.status(e.status).send(e.desc);
       }
     },
-    getEvent: function(req, res) {
-      console.log("getEvent");
-      console.log(req.params);
-      res.send({});
+    getEvent: async function(req, res) {
+      try {
+        const event = await service.getEvent(req.params.eventId);
+        res.json(event);
+      } catch (e) {
+        res.status(e.status).send(e.desc);
+      }
     },
-    commentEvent: function(req, res) {
+    getEventComments: async function(req, res) {
       console.log("comment event");
       console.log(req.body);
       console.log(req.params);
       res.send({});
     },
+    commentEvent: async function(req, res) {
+      try {
+        req.body.target = req.params.eventId;
+        req.body.author = req.decodedUser.id;
+        const newComment = await service.commentEvent(req.body);
+        res.json(newComment);
+      } catch (e) {
+        res.status(e.status).send(e.desc);
+      }
+    },
+    commentComment: async function(req, res) {
+      try {
+        req.body.target = req.params.commentId;
+        req.body.author = req.decodedUser.id;
+        const newComment = await service.commentComment(req.body);
+        res.json(newComment);
+      } catch (e) {
+        res.status(e.status).send(e.desc);
+      }
+    },
+    getCommentComments: async function(req, res) {
+      console.log("comment comment");
+      console.log(req.body);
+      console.log(req.params);
+      res.send({});
+    },
     likeEvent: function(req, res) {
+      console.log("like event");
+      console.log(req.body);
+      console.log(req.params);
+      res.send({});
+    },
+    likeComment: function(req, res) {
       console.log("like event");
       console.log(req.body);
       console.log(req.params);

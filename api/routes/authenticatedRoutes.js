@@ -37,6 +37,11 @@ module.exports = function(app) {
     .get(event.getEvent);
 
   app.route(url + '/events/:eventId/comments')
+    .get(event.getEventComments)
     .post(event.commentEvent);
+
+  app.route(url + '/comments/:commentId/comments')
+    .get(event.getCommentComments)
+    .post(event.commentComment)
 
 }

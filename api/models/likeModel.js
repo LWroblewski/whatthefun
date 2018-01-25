@@ -9,6 +9,10 @@ const LikeSchema = new Schema({
   like_date: {
     type: Date,
     default: Date.now
+  },
+  target: {
+    type: String,
+    required: 'id of the like\'s target'
   }
 
 });

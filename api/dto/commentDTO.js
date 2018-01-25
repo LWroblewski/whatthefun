@@ -6,7 +6,8 @@ module.exports = class CommentDTO {
     this.content = comment.content;
     this.likes = comment.likes;
     this.writtenDate = comment.written_date;
-
+    this.target = comment.target;
+    this.comments = comment.comments;
   }
   getId() {
     return this.id;
@@ -22,5 +23,11 @@ module.exports = class CommentDTO {
   }
   getWrittenDate() {
     return this.writtenDate;
+  }
+  getComments() {
+    return this.comments;
+  }
+  getTarget() {
+    return this.target;
   }
 }

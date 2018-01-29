@@ -1,5 +1,4 @@
 module.exports = class UserDTO {
-
   constructor(user) {
     this.id = user._id;
     this.login = user.login;
@@ -30,5 +29,4 @@ module.exports = class UserDTO {
   isAdmin() {
     return this.admin;
   }
-
 }

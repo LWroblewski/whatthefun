@@ -53,7 +53,6 @@ module.exports = function(app) {
       try {
         const user = await userService.getUser(userId);
         const team = await this.getTeam(teamId);
-        console.log("TEAM :" + user.getTeam());
         if (user.getTeam()) {
           throw errors.team.ALREADY_HAS_TEAM;
         }

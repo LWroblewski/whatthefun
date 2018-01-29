@@ -9,9 +9,19 @@ module.exports = function(app) {
           const b64 = req.headers.authorization.substring("Basic ".length);
           const buf = Buffer.from(b64, 'base64');
           const creds = buf.toString("utf-8").split(":");
+          let pwd;
+          if (creds.length > 2) {
+            let tempPwd = [];
+            for (let i = 1; i < creds.length; i++) {
+              tempPwd.push(creds[i]);
+            }
+            pwd = tempPwd.join(':');
+          } else {
+            pwd = creds[1];
+          }
           const jwt = await service.getJwt({
             login: creds[0],
-            pwd: creds[1]
+            pwd: pwd
           });
           res.json(jwt);
         } catch (e) {

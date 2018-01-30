@@ -25,6 +25,7 @@ module.exports = function(app) {
           });
           res.json(jwt);
         } catch (e) {
+          console.error(e);
           res.status(e.status).send(e.desc);
         }
 
@@ -65,6 +66,14 @@ module.exports = function(app) {
       }
     },
 
+
+    /**
+     * @api {get} /api/users Retrieve a list of all Users
+     * @apiName GetUsers
+     * @apiGroup User
+     *
+     * @apiSuccess {Array} Array of users 
+     */
     getUsers: async function(req, res) {
       try {
         const users = await service.getUsers();
@@ -74,6 +83,23 @@ module.exports = function(app) {
       }
     },
 
+
+
+    /**
+     * @api {get} /api/users/:id Retrieve an User
+     * @apiName GetUser
+     * @apiGroup User
+     *
+     * @apiParam {String} id User id
+     *
+     * @apiSuccess {String} id User id
+     * @apiSuccess {String} login User login
+     * @apiSuccess {String} [firstname] User firstname
+     * @apiSuccess {String} [lastname] User lastname
+     * @apiSuccess {Date} [birthdate] User date of birth
+     * @apiSuccess {String} [team] User team ID
+     * @apiSuccess {Boolean} [admin] Is the User an admin or not
+     */
     getUser: async function(req, res) {
       try {
         const user = await service.getUser(req.params.userId);
@@ -112,6 +138,16 @@ module.exports = function(app) {
       }
     },
 
+
+    /**
+     * @api {delete} /api/users/:id Remove an User
+     * @apiName DeleteUser
+     * @apiGroup User
+     *
+     * @apiParam {String} id User id
+     *
+     * @apiSuccess (204)
+     */  
     deleteUser: async function(req, res) {
       try {
         const result = await service.deleteUser(req.params.userId);

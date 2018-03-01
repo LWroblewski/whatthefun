@@ -68,7 +68,6 @@ module.exports = function (app) {
             reject(err);
           });
       } catch (e) {
-        console.log(e);
         throw errors.default.DEFAULT;
       }
     },

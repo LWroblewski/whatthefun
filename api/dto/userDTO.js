@@ -8,6 +8,7 @@ module.exports = class UserDTO {
     this.team = user.team;
     this.admin = user.admin;
     this.imageUrl = user.imageUrl;
+    this.pseudo = user.pseudo;
   }
   getId() {
     return this.id;
@@ -32,5 +33,8 @@ module.exports = class UserDTO {
   }
   getImageUrl() {
     return this.imageUrl;
+  }
+  getPseudo() {
+    return this.pseudo;
   }
 }

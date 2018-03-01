@@ -19,12 +19,41 @@ module.exports = function(app) {
 
     getTeams: async function() {
       try {
-        const teams = await Team.find({});
-        const teamsDto = [];
-        for (let i = 0; i < teams.length; i++) {
-          teamsDto.push(new TeamDTO(teams[i]));
-        }
-        return teamsDto;
+        return Team.aggregate([
+          {
+            $match: {}
+          },
+          {
+            $lookup: {
+              from: 'users',
+              localField: 'members',
+              foreignField: '_id',
+              as: 'members'
+            }
+          },
+          {
+            $project: {
+              "_id": 1,
+              "leader": 1,
+              "name": 1,
+              "code": 1,
+              "imageUrl": 1,
+              "score": 1,
+              "members._id": 1,
+              "members.pseudo" : 1,
+              "members.imageUrl" : 1
+            }
+          }
+        ]).exec()
+          .then(function (data) {
+            return new Promise(function (resolve, reject) {
+              const result = data.map(d => new TeamDTO(d));
+              resolve(result);
+            });
+          }, function (error) {
+            console.error('ERROR >> ', err);
+            reject(err);
+          });
       } catch (e) {
         throw errors.default.DEFAULT;
       }
@@ -43,7 +72,7 @@ module.exports = function(app) {
           } else {
             const newTeam = new Team(team);
             const result = await newTeam.save();
-            return new TeamDTO(result);
+            return this.getTeam(result._id);
           }
         }
       }
@@ -106,8 +135,43 @@ module.exports = function(app) {
 
     getTeam: async function(id) {
       try {
-        const team = await Team.findById(id);
-        return new TeamDTO(team);
+        return Team.aggregate([
+          {
+            $match: { 
+              _id: new mongoose.Types.ObjectId(id)
+            }
+          },
+          {
+            $lookup: {
+              from: 'users',
+              localField: 'members',
+              foreignField: '_id',
+              as: 'members'
+            }
+          },
+          {
+            $project: {
+              "_id": 1,
+              "leader": 1,
+              "name": 1,
+              "code": 1,
+              "imageUrl": 1,
+              "score": 1,
+              "members._id": 1,
+              "members.pseudo" : 1,
+              "members.imageUrl" : 1
+            }
+          }
+        ]).exec()
+          .then(function (data) {
+            return new Promise(function (resolve, reject) {
+              const result = data.map(d => new TeamDTO(d));
+              resolve(result);
+            });
+          }, function (error) {
+            console.error('ERROR >> ', err);
+            reject(err);
+          });
       } catch (e) {
         throw errors.default.NOT_FOUND;
       }

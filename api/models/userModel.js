@@ -24,8 +24,8 @@ const UserSchema = new Schema({
   updated_at: Date,
   birthdate: Date,
   team: String,
-  imageUrl: String
-
+  imageUrl: String,
+  pseudo: String
 });
 
 module.exports = mongoose.model('Users', UserSchema);

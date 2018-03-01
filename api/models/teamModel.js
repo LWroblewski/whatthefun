@@ -14,7 +14,9 @@ const TeamSchema = new Schema({
   leader: {
     type: String,
     required: 'Team leader'
-  }
+  },  
+  code: String,
+  imageUrl: String
 });
 
 module.exports = mongoose.model('Teams', TeamSchema);

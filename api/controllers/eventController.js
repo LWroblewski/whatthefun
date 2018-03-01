@@ -1,6 +1,7 @@
 module.exports = function(app) {
   const errors = require("../errors/errors").errors;
   const service = require("../services/eventService")(app);
+  const mongoose = require("mongoose");
 
   return {
     getEvents: async function(req, res) {
@@ -14,7 +15,7 @@ module.exports = function(app) {
 
     createEvent: async function(req, res) {
       try {
-        req.body.owner = req.decodedUser.id;
+        req.body.owner = new mongoose.Types.ObjectId(req.decodedUser.id);
         const newEvent = await service.createEvent(req.body);
         res.json(newEvent);
       } catch (e) {
@@ -37,8 +38,8 @@ module.exports = function(app) {
     },
     commentEvent: async function(req, res) {
       try {
-        req.body.target = req.params.eventId;
-        req.body.author = req.decodedUser.id;
+        req.body.target = new mongoose.Types.ObjectId(req.params.eventId);
+        req.body.author = new mongoose.Types.ObjectId(req.decodedUser.id);
         const newComment = await service.commentEvent(req.body);
         res.json(newComment);
       } catch (e) {
@@ -47,8 +48,8 @@ module.exports = function(app) {
     },
     commentComment: async function(req, res) {
       try {
-        req.body.target = req.params.commentId;
-        req.body.author = req.decodedUser.id;
+        req.body.target = new mongoose.Types.ObjectId(req.params.commentId);
+        req.body.author = new mongoose.Types.ObjectId(req.decodedUser.id);
         const newComment = await service.commentComment(req.body);
         res.json(newComment);
       } catch (e) {

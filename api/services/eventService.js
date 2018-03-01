@@ -3,9 +3,10 @@ const Comment = require("../models/commentModel");
 const errors = require("../errors/errors").errors;
 const EventDTO = require("../dto/eventDTO");
 const CommentDTO = require("../dto/commentDTO");
+const mongoose = require("mongoose");
 
 
-module.exports = function(app) {
+module.exports = function (app) {
   const userService = require("./userService")(app);
   const teamService = require("./teamService")(app);
   return {
@@ -13,47 +14,145 @@ module.exports = function(app) {
 
     //  EVENTS
 
-
-    getEvents: async function() {
+    getEvents: async function () {
       try {
-        const events = await Event.find({});
-        const eventsDto = [];
-        for (let i = 0; i < events.length; i++) {
-          eventsDto.push(new EventDTO(events[i]));
-        }
-        return eventsDto;
+        return Event.aggregate([
+          {
+            $match: {}
+          },
+          {
+            $lookup: {
+              from: 'users',
+              localField: 'owner',
+              foreignField: '_id',
+              as: 'owner'
+            }
+          },
+          {
+            $project: {
+              "_id": 1,
+              "event_type": 1,
+              "title": 1,
+              "long_desc": 1,
+              "short_desc": 1,
+              "target": 1,
+              "target_type": 1,
+              "comments": 1,
+              "likes": 1,
+              "status": 1,
+              "created_at": 1,
+              "owner": {
+                $let: {
+                  vars: {
+                    firstOwner: {
+                      $arrayElemAt: ["$owner", 0]
+                    }
+                  },
+                  in: {
+                    id: "$$firstOwner._id",
+                    pseudo: "$$firstOwner.pseudo",
+                    imageUrl: "$$firstOwner.imageUrl"
+                  }
+                }
+              }
+            }
+          }
+        ]).exec()
+          .then(function (data) {
+            return new Promise(function (resolve, reject) {
+              const result = data.map(d => new EventDTO(d));
+              resolve(result);
+            });
+          }, function (error) {
+            console.error('ERROR >> ', err);
+            reject(err);
+          });
       } catch (e) {
+        console.log(e);
         throw errors.default.DEFAULT;
       }
     },
 
-    getEvent: async function(eventId) {
+    getEvent: async function (eventId) {
       try {
-        const event = await Event.findById(eventId);
-        return new EventDTO(event);
+        const comments = await this.getCommentEvent(eventId);
+        return Event.aggregate([
+          {
+            $match: {
+              _id: new mongoose.Types.ObjectId(eventId)
+            }
+          },
+          {
+            $lookup: {
+              from: 'users',
+              localField: 'owner',
+              foreignField: '_id',
+              as: 'owner'
+            }
+          },
+          {
+            $project: {
+              "_id": 1,
+              "event_type": 1,
+              "title": 1,
+              "long_desc": 1,
+              "short_desc": 1,
+              "target": 1,
+              "target_type": 1,
+              "comments": 1,
+              "likes": 1,
+              "status": 1,
+              "created_at": 1,
+              "owner": {
+                $let: {
+                  vars: {
+                    firstOwner: {
+                      $arrayElemAt: ["$owner", 0]
+                    }
+                  },
+                  in: {
+                    id: "$$firstOwner._id",
+                    pseudo: "$$firstOwner.pseudo",
+                    imageUrl: "$$firstOwner.imageUrl"
+                  }
+                }
+              }
+            }
+          }
+        ]).exec()
+          .then(function (data) {
+            return new Promise(function (resolve, reject) {
+              data[0].comments = comments;
+              const result = new EventDTO(data[0]);
+              resolve(result);
+            });
+          }, function (error) {
+            console.error('ERROR >> ', err);
+            reject(err);
+          });
       } catch (e) {
         throw errors.default.NOT_FOUND;
       }
     },
 
-    getUserEvents: async function(userId) {
+    getUserEvents: async function (userId) {
 
     },
 
-    deleteEvent: async function(eventId) {
+    deleteEvent: async function (eventId) {
 
     },
 
-    createEvent: async function(event) {
+    createEvent: async function (event) {
       if (event && event.event_type && event.owner && event.title) {
         try {
           const user = await userService.getUser(event.owner);
           const newEvent = new Event(event);
-          const result = await newEvent.save();
+          let result = await newEvent.save();
           if (user.team) {
             teamService.addPointsToTeam(user.team, app.get("eventReward"));
           }
-          return new EventDTO(result);
+          return this.getEvent(result._id);
         } catch (e) {
           throw e;
         }
@@ -66,7 +165,7 @@ module.exports = function(app) {
 
     // COMMENTS
 
-    commentComment: async function(comment) {
+    commentComment: async function (comment) {
       if (comment && comment.content && comment.author && comment.target) {
         try {
           const user = await userService.getUser(comment.author);
@@ -83,8 +182,8 @@ module.exports = function(app) {
           const update = await Comment.update({
             _id: comment.target
           }, {
-            comments: comments
-          });
+              comments: comments
+            });
 
           return new CommentDTO(result);
         } catch (e) {
@@ -95,7 +194,7 @@ module.exports = function(app) {
       }
     },
 
-    commentEvent: async function(comment) {
+    commentEvent: async function (comment) {
       if (comment && comment.content && comment.author && comment.target) {
         try {
           const user = await userService.getUser(comment.author);
@@ -112,10 +211,10 @@ module.exports = function(app) {
           const update = await Event.update({
             _id: comment.target
           }, {
-            comments: comments
-          });
-
-          return new CommentDTO(result);
+              comments: comments
+            });
+          const commentCreated = await this.getComment(result._id);
+          return commentCreated;
         } catch (e) {
           throw e;
         }
@@ -124,10 +223,109 @@ module.exports = function(app) {
       }
     },
 
-    getComment: async function(commentId) {
+    getComment: async function (commentId) {
       try {
-        const comment = await Comment.findById(commentId);
-        return new CommentDTO(comment);
+        return Comment.aggregate([
+          {
+            $match: {
+              _id: new mongoose.Types.ObjectId(commentId)
+            }
+          },
+          {
+            $lookup: {
+              from: 'users',
+              localField: 'author',
+              foreignField: '_id',
+              as: 'author'
+            }
+          },
+          {
+            $project: {
+              "_id": 1,
+              "content": 1,
+              "target": 1,
+              "likes": 1,
+              "written_date": 1,
+              "author": {
+                $let: {
+                  vars: {
+                    firstAuthor: {
+                      $arrayElemAt: ["$author", 0]
+                    }
+                  },
+                  in: {
+                    id: "$$firstAuthor._id",
+                    pseudo: "$$firstAuthor.pseudo",
+                    imageUrl: "$$firstAuthor.imageUrl"
+                  }
+                }
+              }
+            }
+          }
+        ]).exec()
+          .then(function (data) {
+            return new Promise(function (resolve, reject) {
+              const result = new CommentDTO(data[0]);
+              resolve(result);
+            });
+          }, function (error) {
+            console.error('ERROR >> ', err);
+            reject(err);
+          });
+      } catch (e) {
+        throw errors.default.NOT_FOUND;
+      }
+    },
+
+    getCommentEvent: async function (eventId) {
+      try {
+        return Comment.aggregate([
+          {
+            $match: {
+              target: new mongoose.Types.ObjectId(eventId)
+            }
+          },
+          {
+            $lookup: {
+              from: 'users',
+              localField: 'author',
+              foreignField: '_id',
+              as: 'author'
+            }
+          },
+          {
+            $project: {
+              "_id": 1,
+              "content": 1,
+              "target": 1,
+              "likes": 1,
+              "written_date": 1,
+              "author": {
+                $let: {
+                  vars: {
+                    firstAuthor: {
+                      $arrayElemAt: ["$author", 0]
+                    }
+                  },
+                  in: {
+                    id: "$$firstAuthor._id",
+                    pseudo: "$$firstAuthor.pseudo",
+                    imageUrl: "$$firstAuthor.imageUrl"
+                  }
+                }
+              }
+            }
+          }
+        ]).exec()
+          .then(function (data) {
+            return new Promise(function (resolve, reject) {
+              const result = data.map(d => new CommentDTO(d));
+              resolve(result);
+            });
+          }, function (error) {
+            console.error('ERROR >> ', err);
+            reject(err);
+          });
       } catch (e) {
         throw errors.default.NOT_FOUND;
       }

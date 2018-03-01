@@ -7,6 +7,7 @@ module.exports = class UserDTO {
     this.birthdate = user.birthdate;
     this.team = user.team;
     this.admin = user.admin;
+    this.imageUrl = user.imageUrl;
   }
   getId() {
     return this.id;
@@ -28,5 +29,8 @@ module.exports = class UserDTO {
   }
   isAdmin() {
     return this.admin;
+  }
+  getImageUrl() {
+    return this.imageUrl;
   }
 }

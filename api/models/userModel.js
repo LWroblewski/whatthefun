@@ -23,8 +23,8 @@ const UserSchema = new Schema({
   },
   updated_at: Date,
   birthdate: Date,
-  team: String
-
+  team: String,
+  imageUrl: String
 
 });
 

@@ -3,7 +3,7 @@ const Schema = mongoose.Schema;
 
 const CommentSchema = new Schema({
   author: {
-    type: String,
+    type: mongoose.Schema.ObjectId,
     required: 'User author the comment'
   },
   written_date: {
@@ -16,7 +16,7 @@ const CommentSchema = new Schema({
   },
   likes: Array,
   target: {
-    type: String,
+    type: mongoose.Schema.ObjectId,
     required: 'id of the comment\'s target'
   },
   comments: Array

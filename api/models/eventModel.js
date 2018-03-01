@@ -7,7 +7,7 @@ const EventSchema = new Schema({
     required: 'title of the event'
   },
   owner: {
-    type: String,
+    type: mongoose.Schema.ObjectId,
     required: 'User owning the event'
   },
   created_date: {

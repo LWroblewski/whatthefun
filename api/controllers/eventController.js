@@ -46,11 +46,31 @@ module.exports = function(app) {
         res.status(e.status).send(e.desc);
       }
     },
+    likeEvent: async function(req, res) {
+      try {
+        req.body.target = new mongoose.Types.ObjectId(req.params.eventId);
+        req.body.author = new mongoose.Types.ObjectId(req.decodedUser.id);
+        const newEvent = await service.likeEvent(req.body);
+        res.json(newEvent);
+      } catch (e) {
+        res.status(e.status).send(e.desc);
+      }
+    },
     commentComment: async function(req, res) {
       try {
         req.body.target = new mongoose.Types.ObjectId(req.params.commentId);
         req.body.author = new mongoose.Types.ObjectId(req.decodedUser.id);
         const newComment = await service.commentComment(req.body);
+        res.json(newComment);
+      } catch (e) {
+        res.status(e.status).send(e.desc);
+      }
+    },
+    likeComment: async function(req, res) {
+      try {
+        req.body.target = new mongoose.Types.ObjectId(req.params.commentId);
+        req.body.author = new mongoose.Types.ObjectId(req.decodedUser.id);
+        const newComment = await service.likeComment(req.body);
         res.json(newComment);
       } catch (e) {
         res.status(e.status).send(e.desc);
@@ -69,18 +89,6 @@ module.exports = function(app) {
       console.log(req.body);
       console.log(req.params);
       res.send({});
-    },
-    likeEvent: function(req, res) {
-      console.log("like event");
-      console.log(req.body);
-      console.log(req.params);
-      res.send({});
-    },
-    likeComment: function(req, res) {
-      console.log("like event");
-      console.log(req.body);
-      console.log(req.params);
-      res.send({});
-    },
+    }
   }
 }

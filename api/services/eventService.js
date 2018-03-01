@@ -194,6 +194,33 @@ module.exports = function (app) {
       }
     },
 
+    likeComment: async function (comment) {
+      if (comment && comment.author && comment.target) {
+        try {
+          const user = await userService.getUser(comment.author);
+          const com = await this.getComment(comment.target);
+          if (user.team) {
+            teamService.addPointsToTeam(user.team, app.get("likeReward"));
+          }
+          let likes = com.likes;
+          if (!likes.some(l => l.toString() === comment.author.toString())) {
+            likes.push(comment.author);
+          }
+          const update = await Comment.update({
+            _id: comment.target
+          }, {
+              likes: likes
+            });
+
+          return this.getComment(comment.target);
+        } catch (e) {
+          throw e;
+        }
+      } else {
+        throw errors.default.BAD_PARAMS;
+      }
+    },
+
     commentEvent: async function (comment) {
       if (comment && comment.content && comment.author && comment.target) {
         try {
@@ -215,6 +242,32 @@ module.exports = function (app) {
             });
           const commentCreated = await this.getComment(result._id);
           return commentCreated;
+        } catch (e) {
+          throw e;
+        }
+      } else {
+        throw errors.default.BAD_PARAMS;
+      }
+    },
+
+    likeEvent: async function (event) {
+      if (event && event.author && event.target) {
+        try {
+          const user = await userService.getUser(event.author);
+          const ev = await this.getEvent(event.target);
+          if (user.team) {
+            teamService.addPointsToTeam(user.team, app.get("likeReward"));
+          }
+          let likes = ev.likes;
+          if (!likes.some(l => l.toString() === event.author.toString())) {            
+            likes.push(event.author);
+          }
+          const update = await Event.update({
+            _id: event.target
+          }, {
+              likes: likes
+            });
+          return this.getEvent(event.target);
         } catch (e) {
           throw e;
         }

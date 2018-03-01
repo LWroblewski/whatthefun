@@ -1,4 +1,4 @@
-module.exports = function(app) {
+module.exports = function (app) {
   const user = require('../controllers/userController')(app);
   const team = require('../controllers/teamController')(app);
   const event = require('../controllers/eventController')(app);
@@ -40,11 +40,17 @@ module.exports = function(app) {
     .get(event.getEventComments)
     .post(event.commentEvent);
 
+  app.route(url + '/events/:eventId/likes')
+    .post(event.likeEvent);
+
   app.route(url + '/comments/:commentId')
     .get(event.getComment);
 
   app.route(url + '/comments/:commentId/comments')
     .get(event.getCommentComments)
     .post(event.commentComment)
+
+  app.route(url + '/comments/:commentId/likes')
+    .post(event.likeComment)
 
 }

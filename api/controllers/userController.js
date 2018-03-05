@@ -1,9 +1,9 @@
 const errors = require("../errors/errors").errors;
-module.exports = function(app) {
+module.exports = function (app) {
   const service = require("../services/userService")(app);
 
   return {
-    authenticate: async function(req, res) {
+    authenticate: async function (req, res) {
       if (req.headers.authorization) {
         try {
           const b64 = req.headers.authorization.substring("Basic ".length);
@@ -25,8 +25,12 @@ module.exports = function(app) {
           });
           res.json(jwt);
         } catch (e) {
-          console.error(e);
-          res.status(e.status).send(e.desc);
+          if (e.status) {
+            res.status(e.status).send(e.desc);
+          } else {
+            let err = errors.default.DEFAULT;
+            res.status(err.status).send(err.desc);
+          }
         }
 
       } else {
@@ -35,7 +39,7 @@ module.exports = function(app) {
       }
     },
 
-    verifyToken: async function(req, res, next) {
+    verifyToken: async function (req, res, next) {
       if (req.headers.authorization) {
         try {
           const token = req.headers.authorization.substring("Bearer ".length);
@@ -55,7 +59,7 @@ module.exports = function(app) {
       }
     },
 
-    verifyAdminToken: async function(req, res, next) {
+    verifyAdminToken: async function (req, res, next) {
       try {
         const token = req.headers.authorization.substring("Bearer ".length);
         const user = await service.verifyAdminToken(token);
@@ -74,7 +78,7 @@ module.exports = function(app) {
      *
      * @apiSuccess {Array} Array of users 
      */
-    getUsers: async function(req, res) {
+    getUsers: async function (req, res) {
       try {
         const users = await service.getUsers();
         res.json(users);
@@ -100,7 +104,7 @@ module.exports = function(app) {
      * @apiSuccess {String} [team] User team ID
      * @apiSuccess {Boolean} [admin] Is the User an admin or not
      */
-    getUser: async function(req, res) {
+    getUser: async function (req, res) {
       try {
         const user = await service.getUser(req.params.userId);
         res.json(user);
@@ -129,7 +133,7 @@ module.exports = function(app) {
      * @apiSuccess {String} [team] User team ID
      * @apiSuccess {Boolean} [admin] Is the User an admin or not
      */
-    createUser: async function(req, res) {
+    createUser: async function (req, res) {
       try {
         const newUser = await service.createUser(req.body);
         res.json(newUser);
@@ -147,8 +151,8 @@ module.exports = function(app) {
      * @apiParam {String} id User id
      *
      * @apiSuccess (204)
-     */  
-    deleteUser: async function(req, res) {
+     */
+    deleteUser: async function (req, res) {
       try {
         const result = await service.deleteUser(req.params.userId);
         res.status(204).send();
@@ -172,7 +176,7 @@ module.exports = function(app) {
      *
      * @apiSuccess (204)
      */
-    updateUser: async function(req, res) {
+    updateUser: async function (req, res) {
       if ((req.decodedUser && (req.decodedUser._id == req.params.userId)) || req.decodedAdmin) {
         req.body._id = req.params.userId;
 

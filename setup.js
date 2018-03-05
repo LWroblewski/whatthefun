@@ -102,6 +102,7 @@
 
     const t1 = await teamService.createTeam(team1);
     console.log("... " + t1.name + " leaded by " + testUser1DTO.lastname + "...");
+    await teamService.addUserInTeam(admin.id, t1.id);
     await teamService.addUserInTeam(testUser1DTO.id, t1.id);
     await teamService.addUserInTeam(testUser3DTO.id, t1.id);
     await teamService.addUserInTeam(testUser4DTO.id, t1.id);

@@ -37,7 +37,6 @@ module.exports = function(app) {
           id: user._id,
           password: user.password
         }
-        console.log(payload);
         const token = jwt.sign(payload, app.get('superSecret'), {
           expiresIn: '1440min'
         });
@@ -57,7 +56,6 @@ module.exports = function(app) {
     },
 
     verifyToken: async function(token) {
-      console.log("VerifyToken");
       if (token) {
         try {
           const decoded = jwt.verify(token, app.get("superSecret"));
@@ -83,7 +81,6 @@ module.exports = function(app) {
     },
 
     verifyAdminToken: async function(token) {
-      console.log("VerifyAdminToken");
       if (token) {
         let isAdmin = true;
         try {
@@ -140,7 +137,6 @@ module.exports = function(app) {
     },
 
     updateUser: async function(user, isAdmin) {
-      console.log("Update user");
       let forbidden = false;
       let defaultErr = false;
       try {
@@ -160,7 +156,6 @@ module.exports = function(app) {
           return new UserDTO(updated);
         } catch (err) {
           defaultErr = true;
-          console.error(err);
           throw errors.default.DEFAULT;
         }
 
@@ -200,7 +195,6 @@ module.exports = function(app) {
     },
 
     deleteUser: async function(userId) {
-      console.log("Delete user");
       const result = await User.remove({
         _id: userId
       });

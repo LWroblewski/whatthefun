@@ -3,8 +3,12 @@ const db = require("./api/dao/databaseAccess");
 const config = require("./config");
 const morgan = require("morgan");
 const app = express();
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./swagger.json');
 
 const port = process.env.PORT || 3000;
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.set('db', db);
 app.set('superSecret', config.secret);

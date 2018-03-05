@@ -2,7 +2,7 @@ module.exports = class EventDTO {
 
   constructor(event) {
     this.id = event._id;
-    this.owner = event.owner;
+    this.author = event.author;
     this.status = event.status;
     this.title = event.title;
     this.shortDesc = event.short_desc;
@@ -12,8 +12,7 @@ module.exports = class EventDTO {
     this.comments = event.comments;
     this.createdDate = event.created_date;
     this.dueDate = event.due_date;
-    this.target = event.target;
-    this.targetType = event.target_type;
+    this.members = event.target;
 
   }
   getId() {
@@ -22,8 +21,8 @@ module.exports = class EventDTO {
   getTitle() {
     return this.title;
   }
-  getOwner() {
-    return this.owner;
+  getAuthor() {
+    return this.author;
   }
   getShortDesc() {
     return this.shortDesc;
@@ -46,8 +45,8 @@ module.exports = class EventDTO {
   getTargetType() {
     return this.targetType;
   }
-  getTarget() {
-    return this.target;
+  getMembers() {
+    return this.members;
   }
 
 }

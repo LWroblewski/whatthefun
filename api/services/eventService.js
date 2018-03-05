@@ -10,8 +10,6 @@ module.exports = function (app) {
   const userService = require("./userService")(app);
   const teamService = require("./teamService")(app);
   return {
-
-
     //  EVENTS
 
     getEvents: async function () {
@@ -25,7 +23,7 @@ module.exports = function (app) {
               from: 'users',
               localField: 'owner',
               foreignField: '_id',
-              as: 'owner'
+              as: 'author'
             }
           },
           {
@@ -40,12 +38,12 @@ module.exports = function (app) {
               "comments": 1,
               "likes": 1,
               "status": 1,
-              "created_at": 1,
-              "owner": {
+              "created_date": 1,
+              "author": {
                 $let: {
                   vars: {
                     firstOwner: {
-                      $arrayElemAt: ["$owner", 0]
+                      $arrayElemAt: ["$author", 0]
                     }
                   },
                   in: {
@@ -57,16 +55,91 @@ module.exports = function (app) {
               }
             }
           }
-        ]).exec()
+        ]).sort({ "created_date": -1 })
+          .exec()
           .then(function (data) {
             return new Promise(function (resolve, reject) {
               const result = data.map(d => new EventDTO(d));
               resolve(result);
             });
           }, function (error) {
-            console.error('ERROR >> ', err);
-            reject(err);
+            new Promise(function (resolve, reject) {
+              reject(error);
+            });
           });
+      } catch (e) {
+        throw errors.default.DEFAULT;
+      }
+    },
+    getMineEvents: async function (userId) {
+      try {
+        return Event.aggregate([
+          {
+            $match: {
+              owner: new mongoose.Types.ObjectId(userId)
+            }
+          },
+          {
+            $lookup: {
+              from: 'users',
+              localField: 'owner',
+              foreignField: '_id',
+              as: 'author'
+            }
+          },
+          {
+            $project: {
+              "_id": 1,
+              "event_type": 1,
+              "title": 1,
+              "long_desc": 1,
+              "short_desc": 1,
+              "target": 1,
+              "target_type": 1,
+              "comments": 1,
+              "likes": 1,
+              "status": 1,
+              "created_date": 1,
+              "author": {
+                $let: {
+                  vars: {
+                    firstOwner: {
+                      $arrayElemAt: ["$author", 0]
+                    }
+                  },
+                  in: {
+                    id: "$$firstOwner._id",
+                    pseudo: "$$firstOwner.pseudo",
+                    imageUrl: "$$firstOwner.imageUrl"
+                  }
+                }
+              }
+            }
+          }
+        ]).sort({ "created_date": -1 })
+          .exec()
+          .then(function (data) {
+            return new Promise(function (resolve, reject) {
+              const result = data.map(d => new EventDTO(d));
+              resolve(result);
+            });
+          }, function (error) {
+            new Promise(function (resolve, reject) {
+              reject(error);
+            });
+          });
+      } catch (e) {
+        throw errors.default.DEFAULT;
+      }
+    },
+
+    getTaggedEvents: async function (userId) {
+      try {
+        const allEvent = await this.getEvents();
+        return new Promise(function (resolve, reject) {
+          const result = allEvent.filter(e => e.members.some(m => m.id.toString() === userId.toString()));
+          resolve(result);
+        });
       } catch (e) {
         throw errors.default.DEFAULT;
       }
@@ -86,7 +159,7 @@ module.exports = function (app) {
               from: 'users',
               localField: 'owner',
               foreignField: '_id',
-              as: 'owner'
+              as: 'author'
             }
           },
           {
@@ -101,12 +174,12 @@ module.exports = function (app) {
               "comments": 1,
               "likes": 1,
               "status": 1,
-              "created_at": 1,
-              "owner": {
+              "created_date": 1,
+              "author": {
                 $let: {
                   vars: {
                     firstOwner: {
-                      $arrayElemAt: ["$owner", 0]
+                      $arrayElemAt: ["$author", 0]
                     }
                   },
                   in: {
@@ -126,8 +199,9 @@ module.exports = function (app) {
               resolve(result);
             });
           }, function (error) {
-            console.error('ERROR >> ', err);
-            reject(err);
+            new Promise(function (resolve, reject) {
+              reject(error);
+            });
           });
       } catch (e) {
         throw errors.default.NOT_FOUND;
@@ -258,7 +332,7 @@ module.exports = function (app) {
             teamService.addPointsToTeam(user.team, app.get("likeReward"));
           }
           let likes = ev.likes;
-          if (!likes.some(l => l.toString() === event.author.toString())) {            
+          if (!likes.some(l => l.toString() === event.author.toString())) {
             likes.push(event.author);
           }
           const update = await Event.update({
@@ -321,8 +395,9 @@ module.exports = function (app) {
               resolve(result);
             });
           }, function (error) {
-            console.error('ERROR >> ', err);
-            reject(err);
+            new Promise(function (resolve, reject) {
+              reject(error);
+            });
           });
       } catch (e) {
         throw errors.default.NOT_FOUND;
@@ -375,8 +450,9 @@ module.exports = function (app) {
               resolve(result);
             });
           }, function (error) {
-            console.error('ERROR >> ', err);
-            reject(err);
+            new Promise(function (resolve, reject) {
+              reject(error);
+            });
           });
       } catch (e) {
         throw errors.default.NOT_FOUND;

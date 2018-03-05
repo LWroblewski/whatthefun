@@ -51,7 +51,6 @@ module.exports = function(app) {
               resolve(result);
             });
           }, function (error) {
-            console.error('ERROR >> ', err);
             reject(err);
           });
       } catch (e) {
@@ -169,7 +168,6 @@ module.exports = function(app) {
               resolve(result);
             });
           }, function (error) {
-            console.error('ERROR >> ', err);
             reject(err);
           });
       } catch (e) {

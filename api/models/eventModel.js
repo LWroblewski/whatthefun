@@ -25,10 +25,8 @@ const EventSchema = new Schema({
   likes: Array,
   comments: Array,
   event_type: {
-
     type: String,
     enum: ['cap', 'story', 'thanks', 'code', 'challenge']
-
   },
   target_type: {
     type: String,

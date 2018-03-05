@@ -1,0 +1,511 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "description": "This is a documentation for the API of What the fun.",
+    "version": "1.0.0",
+    "title": "What the fun API",
+    "termsOfService": "",
+    "contact": {
+      "email": "abouakil.youssef@gmail.com"
+    }
+  },
+  "host": "None",
+  "basePath": "/v2",
+  "tags": [
+    {
+      "name": "auth",
+      "description": "Operations about authentification services."
+    },
+    {
+      "name": "users",
+      "description": "User operations."
+    },
+    {
+      "name": "asked-helps",
+      "description": "Operations tickets (demandes d'aide)"
+    },
+    {
+      "name": "withToken",
+      "description": "Operations where the token is needed in headers variables \"Authorization\"."
+    },
+    {
+      "name": "noToken",
+      "description": "Operations where the token is NOT needed."
+    }
+  ],
+  "schemes": [
+    "http"
+  ],
+  "paths": {
+    "/api/login": {
+      "get": {
+        "tags": [
+          "auth",
+          "noToken"
+        ],
+        "summary": "connection to the application",
+        "description": "",
+        "operationId": "authentication",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "login",
+            "in": "query",
+            "description": "login credential : email address",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "password",
+            "description": "password credential",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "return the authentification token",
+            "schema": {
+              "$ref": "#/definitions/Token"
+            }
+          },
+          "401": {
+            "description": "User has already been deleted. code : USER_DELETE",
+            "schema": {
+              "$ref": "#/definitions/ApiResponseError"
+            }
+          },
+          "404": {
+            "description": "The user can't be found. code : USER_NOT_FOUND",
+            "schema": {
+              "$ref": "#/definitions/ApiResponseError"
+            }
+          },
+          "405": {
+            "description": "Wrong credentials. code : WRONG_CREDENTIALS",
+            "schema": {
+              "$ref": "#/definitions/ApiResponseError"
+            }
+          },
+          "500": {
+            "description": "Interne Error. code : ERROR",
+            "schema": {
+              "$ref": "#/definitions/ApiResponseError"
+            }
+          }
+        }
+      }
+    },
+    "/api/users": {
+      "post": {
+        "tags": [
+          "auth",
+          "noToken"
+        ],
+        "summary": "Create a new account",
+        "description": "This service allow to a user to create an account",
+        "operationId": "createAccount",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/User"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "successfull operation"
+          },
+          "405": {
+            "description": "The user can't be found. code : WRONG_CREDENTIALS",
+            "schema": {
+              "$ref": "#/definitions/ApiResponseError"
+            }
+          },
+          "409": {
+            "description": "The user can't be found. code : ALREADY_EXISTS",
+            "schema": {
+              "$ref": "#/definitions/ApiResponseError"
+            }
+          },
+          "500": {
+            "description": "Interne Error. code : ERROR",
+            "schema": {
+              "$ref": "#/definitions/ApiResponseError"
+            }
+          }
+        }
+      }
+    },
+    "/api/users/{userId}": {
+      "get": {
+        "tags": [
+          "users",
+          "withToken"
+        ],
+        "summary": "get a user information",
+        "description": "get a user information, can be any user so the information are limited",
+        "operationId": "getUser",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "type": "string",
+            "description": "the ID of the user."
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "type": "string",
+            "description": "The Bearer token value got at the connexion process"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successfull operation",
+            "schema": {
+              "$ref": "#/definitions/ReturnUser"
+            }
+          },
+          "500": {
+            "description": "Interne Error. code : ERROR",
+            "schema": {
+              "$ref": "#/definitions/ApiResponseError"
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "users",
+          "withToken"
+        ],
+        "summary": "update profil of the current user",
+        "description": "update profil of the current user. can not be used to update another user profil (security)",
+        "operationId": "updateUser",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "type": "string",
+            "description": "the ID of the user."
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/User"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "type": "string",
+            "description": "The Bearer token value got at the connexion process"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "successfull operation"
+          },
+          "400": {
+            "description": "The parameters are incorrect : incorrect userId. code : BAD_PARAMS",
+            "schema": {
+              "$ref": "#/definitions/ApiResponseError"
+            }
+          },
+          "401": {
+            "description": "User has been already deleted. code : USER_DELETED",
+            "schema": {
+              "$ref": "#/definitions/ApiResponseError"
+            }
+          },
+          "403": {
+            "description": "The user is not authorized to execute this action. code : UNAUTHORIZED",
+            "schema": {
+              "$ref": "#/definitions/ApiResponseError"
+            }
+          },
+          "405": {
+            "description": "The user has not be found. code : USER_NOT_FOUND",
+            "schema": {
+              "$ref": "#/definitions/ApiResponseError"
+            }
+          },
+          "500": {
+            "description": "Interne Error. code : ERROR",
+            "schema": {
+              "$ref": "#/definitions/ApiResponseError"
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "users",
+          "withToken"
+        ],
+        "summary": "delete an account",
+        "description": "delete account of the current user. can not be used to delete another user account (security)",
+        "operationId": "deleteUser",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "type": "string",
+            "description": "the ID of the user."
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "type": "string",
+            "description": "The Bearer token value got at the connexion process"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "successfull operation"
+          },
+          "403": {
+            "description": "The user is not authorized to execute this action. code : UNAUTHORIZED",
+            "schema": {
+              "$ref": "#/definitions/ApiResponseError"
+            }
+          },
+          "500": {
+            "description": "Interne Error. code : ERROR",
+            "schema": {
+              "$ref": "#/definitions/ApiResponseError"
+            }
+          }
+        }
+      }
+    },
+    "/api/asked-helps": {
+      "get": {
+        "tags": [
+          "asked-helps",
+          "withToken"
+        ],
+        "summary": "get all unclosed tickets (demandes d'aide)",
+        "description": "get all unclosed tickets (demandes d'aide)",
+        "oprationId": "unclosedTicketList",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "type": "string",
+            "description": "The Bearer token value got at the connexion process"
+          }
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "Token": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "ID of the current user"
+        },
+        "message": {
+          "type": "string"
+        },
+        "token": {
+          "type": "string",
+          "description": "authentification token to put in Header's variable 'Authorization' for api who needs to be authentified."
+        }
+      }
+    },
+    "User": {
+      "type": "object",
+      "description": "Standard object to create an account (login and password required)",
+      "properties": {
+        "login": {
+          "type": "string",
+          "description": "-required- login credential and email of the user."
+        },
+        "password": {
+          "type": "string",
+          "description": "-required- password credential."
+        },
+        "firstname": {
+          "type": "string"
+        },
+        "lastname": {
+          "type": "string"
+        },
+        "birthdate": {
+          "type": "string",
+          "description": "Date format"
+        }
+      }
+    },
+    "ReturnUser": {
+      "type": "object",
+      "description": "Returned user's information",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "ID of the user"
+        },
+        "login": {
+          "type": "string",
+          "description": "login credential and email of the user."
+        },
+        "firstname": {
+          "type": "string"
+        },
+        "lastname": {
+          "type": "string"
+        },
+        "birthdate": {
+          "type": "string",
+          "description": "date format"
+        },
+        "admin": {
+          "type": "boolean",
+          "description": "Tell us if the account is an admin account."
+        },
+        "deleted": {
+          "type": "boolean",
+          "description": "Tell us if the account had been deleted or is still active."
+        }
+      }
+    },
+    "AskedHelp": {
+      "type": "object",
+      "description": "Standard object to create a ticket",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "date": {
+          "type": "string",
+          "description": "Date format"
+        },
+        "location": {
+          "type": "string"
+        },
+        "visio": {
+          "type": "boolean",
+          "description": "Tell us if the meeting is planned on a visio-conference or physicaly."
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "closed": {
+          "type": "boolean",
+          "description": "Tell us is the ticket is already closed."
+        }
+      }
+    },
+    "ReturnAskedHelp": {
+      "type": "object",
+      "description": "Standard returned object when asking for a ticket (demande d'aide)",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "ID of the ticket (demande d'aide)"
+        },
+        "owner": {
+          "type": "string",
+          "description": "ID of the ticket's owner (user's ID)"
+        },
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "date": {
+          "type": "string",
+          "description": "Date format"
+        },
+        "location": {
+          "type": "string"
+        },
+        "visio": {
+          "type": "boolean",
+          "description": "Tell us if the meeting is planned on a visio-conference or physicaly."
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "closed": {
+          "type": "boolean",
+          "description": "Tell us is the ticket is already closed."
+        }
+      }
+    },
+    "ApiResponseError": {
+      "type": "object",
+      "description": "Returned object on error",
+      "properties": {
+        "code": {
+          "type": "string",
+          "description": "unique code"
+        },
+        "desc": {
+          "type": "string",
+          "description": "description of the error."
+        }
+      }
+    }
+  }
+}

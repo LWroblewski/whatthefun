@@ -5,8 +5,8 @@ module.exports = class EventDTO {
     this.author = event.author;
     this.status = event.status;
     this.title = event.title;
-    this.shortDesc = event.short_desc;
-    this.longDesc = event.long_desc;
+    this.shortDescription = event.shortDescription;
+    this.longDescription = event.longDescription;
     this.likes = event.likes;
     this.type = event.event_type;
     this.comments = event.comments;
@@ -24,11 +24,11 @@ module.exports = class EventDTO {
   getAuthor() {
     return this.author;
   }
-  getShortDesc() {
-    return this.shortDesc;
+  getShortDescription() {
+    return this.shortDescription;
   }
-  getLongDesc() {
-    return this.longDesc;
+  getLongDescription() {
+    return this.longDescription;
   }
   getLikes() {
     return this.likes;

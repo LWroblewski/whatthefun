@@ -20,8 +20,8 @@ const EventSchema = new Schema({
     enum: ['pending', 'ongoing', 'completed'],
     default: 'pending'
   },
-  short_desc: String,
-  long_desc: String,
+  shortDescription: String,
+  longDescription: String,
   likes: Array,
   comments: Array,
   event_type: {

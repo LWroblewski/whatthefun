@@ -8,16 +8,17 @@ module.exports = function (app) {
       try {
         const query = req.query;
         let events;
+        const eventType = query.type;
         if (query.filter) {
           const filter = query.filter;
           if (filter === 'mine') {
-            events = await service.getMineEvents(req.decodedUser.id);
+            events = await service.getMineEvents(eventType, req.decodedUser.id);
           }
           else if (filter === 'tagged') {
-            events = await service.getTaggedEvents(req.decodedUser.id);
+            events = await service.getTaggedEvents(eventType, req.decodedUser.id);
           }
         } else {
-          events = await service.getEvents();
+          events = await service.getEvents(eventType);
         }
         res.json(events);
       } catch (e) {

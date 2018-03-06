@@ -12,11 +12,11 @@ module.exports = function (app) {
   return {
     //  EVENTS
 
-    getEvents: async function () {
+    getEvents: async function (eventType) {
       try {
         return Event.aggregate([
           {
-            $match: {}
+            $match: { event_type: eventType }
           },
           {
             $lookup: {
@@ -31,8 +31,8 @@ module.exports = function (app) {
               "_id": 1,
               "event_type": 1,
               "title": 1,
-              "long_desc": 1,
-              "short_desc": 1,
+              "longDescription": 1,
+              "shortDescription": 1,
               "target": 1,
               "target_type": 1,
               "comments": 1,
@@ -71,12 +71,15 @@ module.exports = function (app) {
         throw errors.default.DEFAULT;
       }
     },
-    getMineEvents: async function (userId) {
+    getMineEvents: async function (eventType, userId) {
       try {
         return Event.aggregate([
           {
             $match: {
-              owner: new mongoose.Types.ObjectId(userId)
+              $and: [ 
+                { owner: new mongoose.Types.ObjectId(userId) },
+                { event_type: eventType }
+              ]
             }
           },
           {
@@ -92,8 +95,8 @@ module.exports = function (app) {
               "_id": 1,
               "event_type": 1,
               "title": 1,
-              "long_desc": 1,
-              "short_desc": 1,
+              "longDescription": 1,
+              "shortDescription": 1,
               "target": 1,
               "target_type": 1,
               "comments": 1,
@@ -133,7 +136,7 @@ module.exports = function (app) {
       }
     },
 
-    getTaggedEvents: async function (userId) {
+    getTaggedEvents: async function (eventType, userId) {
       try {
         const allEvent = await this.getEvents();
         return new Promise(function (resolve, reject) {
@@ -167,8 +170,8 @@ module.exports = function (app) {
               "_id": 1,
               "event_type": 1,
               "title": 1,
-              "long_desc": 1,
-              "short_desc": 1,
+              "longDescription": 1,
+              "shortDescription": 1,
               "target": 1,
               "target_type": 1,
               "comments": 1,

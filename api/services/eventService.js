@@ -9,6 +9,7 @@ const mongoose = require("mongoose");
 module.exports = function (app) {
   const userService = require("./userService")(app);
   const teamService = require("./teamService")(app);
+  const notificationService = require("./notificationService")(app);
   return {
     //  EVENTS
 
@@ -76,7 +77,7 @@ module.exports = function (app) {
         return Event.aggregate([
           {
             $match: {
-              $and: [ 
+              $and: [
                 { owner: new mongoose.Types.ObjectId(userId) },
                 { event_type: eventType }
               ]
@@ -228,6 +229,17 @@ module.exports = function (app) {
           if (user.team) {
             teamService.addPointsToTeam(user.team, app.get("eventReward"));
           }
+          // Create notification
+          const notification = {
+            sender: event.owner,
+            receiver: event.target.map(t => t.id),
+            metadata: {
+              action: 'event',
+              eventId: result._id
+            }
+          }
+          notificationService.addNotification(notification);
+
           return this.getEvent(result._id);
         } catch (e) {
           throw e;
@@ -270,25 +282,36 @@ module.exports = function (app) {
       }
     },
 
-    likeComment: async function (comment) {
-      if (comment && comment.author && comment.target) {
+    likeComment: async function (like) {
+      if (like && like.author && like.target) {
         try {
-          const user = await userService.getUser(comment.author);
-          const com = await this.getComment(comment.target);
+          const user = await userService.getUser(like.author);
+          const comment = await this.getComment(like.target);
           if (user.team) {
             teamService.addPointsToTeam(user.team, app.get("likeReward"));
           }
-          let likes = com.likes;
-          if (!likes.some(l => l.toString() === comment.author.toString())) {
-            likes.push(comment.author);
+          let likes = comment.likes;
+          if (!likes.some(l => l.toString() === like.author.toString())) {
+            likes.push(like.author);
           }
           const update = await Comment.update({
-            _id: comment.target
+            _id: like.target
           }, {
               likes: likes
             });
 
-          return this.getComment(comment.target);
+          // Create notification
+          const notification = {
+            sender: like.author,
+            receiver: [comment.author.id],
+            metadata: {
+              action: 'likeComment',
+              eventId: event.id
+            }
+          }
+          notificationService.addNotification(notification);
+          
+          return this.getComment(like.target);
         } catch (e) {
           throw e;
         }
@@ -316,6 +339,18 @@ module.exports = function (app) {
           }, {
               comments: comments
             });
+            
+          // Create notification
+          const notification = {
+            sender: comment.author,
+            receiver: [event.author.id],
+            metadata: {
+              action: 'comment',
+              eventId: event.id
+            }
+          }
+          notificationService.addNotification(notification);
+          
           const commentCreated = await this.getComment(result._id);
           return commentCreated;
         } catch (e) {
@@ -326,24 +361,36 @@ module.exports = function (app) {
       }
     },
 
-    likeEvent: async function (event) {
-      if (event && event.author && event.target) {
+    likeEvent: async function (like) {
+      if (like && like.author && like.target) {
         try {
-          const user = await userService.getUser(event.author);
-          const ev = await this.getEvent(event.target);
+          const user = await userService.getUser(like.author);
+          const event = await this.getEvent(like.target);
           if (user.team) {
             teamService.addPointsToTeam(user.team, app.get("likeReward"));
           }
-          let likes = ev.likes;
-          if (!likes.some(l => l.toString() === event.author.toString())) {
-            likes.push(event.author);
+          let likes = event.likes;
+          if (!likes.some(l => l.toString() === like.author.toString())) {
+            likes.push(like.author);
           }
           const update = await Event.update({
-            _id: event.target
+            _id: like.target
           }, {
               likes: likes
             });
-          return this.getEvent(event.target);
+            
+          // Create notification
+          const notification = {
+            sender: like.author,
+            receiver: [event.author.id],
+            metadata: {
+              action: 'likeEvent',
+              eventId: event.id
+            }
+          }
+          notificationService.addNotification(notification);
+          
+          return this.getEvent(like.target);
         } catch (e) {
           throw e;
         }

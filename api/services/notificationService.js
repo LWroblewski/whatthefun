@@ -49,7 +49,6 @@ module.exports = function (app) {
           .exec()
           .then(function (data) {
             return new Promise(function (resolve, reject) {
-              console.log(JSON.stringify(data));
               const result = data.map(d => new NotificationDTO(d, userId));
               resolve(result);
             });
@@ -63,26 +62,31 @@ module.exports = function (app) {
       }
     },
 
-    readNotification: async function (ids, userId) {
+    readNotifications: async function (ids, userId) {
       if (ids && ids.length > 0 && userId) {
         try {
-
-          ids.forEach(notificationId => {
-            const notification = Notification.findOne({ _id: notificationId });
+          for (let index = 0; index < ids.length; index++) {
+            const notificationId = ids[index];
+            
+            console.log(notificationId);
+            
+            const notification = await Notification.findById(notificationId);
             console.log(notification);
             let readers = notification.read_by;
+            console.log(readers);
             if (!readers.some(r => r.readerId.toString() === userId.toString())) {
               readers.push({
-                readerId: element
+                readerId: userId
               });
             }
-            // const update = await Notification.update({
-            //   _id: notificationId
-            // }, {
-            //     read_by: readers
-            //   });
-          });
+            const update = await Notification.update({
+              _id: notificationId
+            }, {
+                read_by: readers
+              });
+          }
         } catch (e) {
+          console.log(e);
           throw e;
         }
       } else {

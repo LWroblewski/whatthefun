@@ -14,10 +14,11 @@ module.exports = function (app) {
       }
     },
 
-    readNotifications: async function (req, res) {
+    readNotifications: function (req, res) {
       try {
         const userId = new mongoose.Types.ObjectId(req.decodedUser.id);
-        await service.readNotifications(req.body.notificationIds, userId);
+        const notificationIds = req.body.notificationIds.map(n => new mongoose.Types.ObjectId(n));
+        service.readNotifications(notificationIds, userId);
         res.send();
       } catch (e) {
         res.status(e.status).send(e.desc);

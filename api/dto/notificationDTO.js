@@ -13,8 +13,8 @@ module.exports = class NotificationDTO {
       title: notification.event.title,
       type: notification.event.event_type
     };
-    this.isRead = notification.read_by.some(r => r.readerId === userId);
-    this.createAt = notification.created_at;
+    this.isRead = notification.read_by.some(r => r.readerId.toString() === userId.toString());
+    this.createdAt = notification.created_at;
     this.action = notification.metadata.action;
   }
   getId() {

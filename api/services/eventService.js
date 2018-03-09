@@ -40,6 +40,7 @@ module.exports = function (app) {
               "likes": 1,
               "status": 1,
               "created_date": 1,
+              "imageId": 1,
               "author": {
                 $let: {
                   vars: {

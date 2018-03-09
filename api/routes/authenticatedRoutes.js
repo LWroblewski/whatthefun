@@ -61,7 +61,4 @@ module.exports = function (app) {
 
   app.route(url + '/upload')
     .post(file.upload);
-
-  app.route(url + '/file')  
-    .get(file.getFile)
 }

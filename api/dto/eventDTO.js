@@ -13,6 +13,7 @@ module.exports = class EventDTO {
     this.createdDate = event.created_date;
     this.dueDate = event.due_date;
     this.members = event.target;
+    this.imageId = event.imageId;
 
   }
   getId() {

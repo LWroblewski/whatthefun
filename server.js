@@ -13,6 +13,10 @@ var storage = require('multer-gridfs-storage')({
 });
 const upload = multer({ storage: storage }).single('file');
 
+var mongoose = require("mongoose");
+var grid = require('gridfs-stream');
+var gridFS = grid(mongoose.connection.db, mongoose.mongo);
+
 const port = process.env.PORT || 3000;
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
@@ -25,6 +29,7 @@ app.set('eventReward', config.eventReward);
 app.set('likeReward', config.likeReward);
 app.set('commentReward', config.commentReward);
 app.set('upload', upload);
+app.set('gridFs', gridFS);
 
 const bodyParser = require("body-parser");
 

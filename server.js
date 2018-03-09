@@ -1,10 +1,17 @@
 const express = require("express");
 const db = require("./api/dao/databaseAccess");
+const file = require("./api/dao/fileAccess");
 const config = require("./config");
 const morgan = require("morgan");
 const app = express();
 const swaggerUi = require('swagger-ui-express');
 const swaggerDocument = require('./swagger.json');
+
+var multer = require('multer');
+var storage = require('multer-gridfs-storage')({
+    url: config.database
+});
+const upload = multer({ storage: storage }).single('file');
 
 const port = process.env.PORT || 3000;
 
@@ -17,6 +24,7 @@ app.set('salt', config.salt);
 app.set('eventReward', config.eventReward);
 app.set('likeReward', config.likeReward);
 app.set('commentReward', config.commentReward);
+app.set('upload', upload);
 
 const bodyParser = require("body-parser");
 

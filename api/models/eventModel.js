@@ -33,8 +33,10 @@ const EventSchema = new Schema({
     enum: ['all', 'team', 'user'],
     default: 'all'
   },
-  target: Array
-
+  target: Array,
+  imageId: {
+    type: mongoose.Schema.ObjectId,
+  }
 });
 
 module.exports = mongoose.model('Events', EventSchema);

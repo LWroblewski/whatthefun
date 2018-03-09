@@ -3,6 +3,7 @@ module.exports = function (app) {
   const team = require('../controllers/teamController')(app);
   const event = require('../controllers/eventController')(app);
   const notification = require('../controllers/notificationController')(app);
+  const file = require('../controllers/fileController')(app);
 
   const url = app.get("apiUrl");
 
@@ -57,4 +58,10 @@ module.exports = function (app) {
   app.route(url + '/notifications')
     .get(notification.getNotifications)
     .put(notification.readNotifications);
+
+  app.route(url + '/upload')
+    .post(file.upload);
+
+  app.route(url + '/file')  
+    .get(file.getFile)
 }
